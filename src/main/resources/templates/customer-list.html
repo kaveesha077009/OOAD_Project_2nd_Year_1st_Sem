@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer List - AgroShop</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; }
+        .container { width: 90%; background: white; padding: 20px; border-radius: 8px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; }
+        .add-btn { background-color: #27ae60; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #34495e; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .btn-delete { color: #e74c3c; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Customer List</h2>
+    <a href="/customers/add" class="add-btn">+ Add New Customer</a>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cust : ${customers}">
+            <td th:text="${cust.id}"></td>
+            <td th:text="${cust.user != null ? cust.user.username : 'N/A'}"></td>
+            <td th:text="${cust.firstName + ' ' + cust.lastName}"></td>
+            <td th:text="${cust.email}"></td>
+            <td th:text="${cust.phoneNum}"></td>
+            <td th:text="${cust.address}"></td>
+            <td>
+                <a th:href="@{/customers/delete/{id}(id=${cust.id})}" class="btn-delete" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

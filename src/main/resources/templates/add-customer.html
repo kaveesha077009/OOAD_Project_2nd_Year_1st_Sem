@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Customer - AgroShop</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; }
+        .form-container { width: 400px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
+        h2 { text-align: center; color: #2c3e50; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; background-color: #27ae60; color: white; border: none; padding: 10px; margin-top: 20px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #219150; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #3498db; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Register Customer</h2>
+
+    <form th:action="@{/customers/save}" th:object="${customer}" method="post">
+
+        <label>Username</label>
+        <input type="text" name="username" required/>
+
+        <label>Password</label>
+        <input type="password" name="password" required/>
+
+        <label>First Name</label>
+        <input type="text" th:field="*{firstName}" required/>
+
+        <label>Last Name</label>
+        <input type="text" th:field="*{lastName}" required/>
+
+        <label>Email</label>
+        <input type="email" th:field="*{email}" required/>
+
+        <label>Phone Number</label>
+        <input type="text" th:field="*{phoneNum}" maxlength="10" required/>
+
+        <label>Address</label>
+        <input type="text" th:field="*{address}" required/>
+
+        <button type="submit">Save Customer</button>
+    </form>
+
+    <a href="/customers" class="back-link">Back to Customer List</a>
+</div>
+
+</body>
+</html>
