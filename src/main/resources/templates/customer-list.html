@@ -2,51 +2,228 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Customer List - AgroShop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Directory - AgroShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f6f9; }
-        .container { width: 90%; background: white; padding: 20px; border-radius: 8px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; }
-        .add-btn { background-color: #27ae60; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #34495e; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .btn-delete { color: #e74c3c; text-decoration: none; font-weight: bold; }
+        :root {
+            --primary-color: #15803d; /* Fresh Crop Green */
+            --primary-hover: #166534;
+            --bg-color: #f0fdf4; /* Light Mint Tint */
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #bbf7d0;
+            --danger-color: #ef4444;
+            --danger-bg: #fef2f2;
+            --edit-color: #2563eb;
+            --edit-bg: #eff6ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(22, 101, 52, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-color);
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #dcfce7;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #14532d;
+            letter-spacing: -0.5px;
+        }
+
+        .add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+        }
+
+        .add-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.925rem; }
+
+        thead { background-color: #f0fdf4; }
+
+        th {
+            padding: 16px 18px;
+            font-weight: 700;
+            color: #166534;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.6px;
+        }
+
+        td { padding: 16px 18px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+        tbody tr:hover { background-color: #f8fafc; }
+
+        .user-tag {
+            background-color: #ecfdf5;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .actions-cell { display: flex; gap: 8px; }
+
+        .btn-edit {
+            color: var(--edit-color);
+            background-color: var(--edit-bg);
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit:hover { background-color: var(--edit-color); color: white; }
+
+        .btn-delete {
+            color: var(--danger-color);
+            background-color: var(--danger-bg);
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-delete:hover { background-color: var(--danger-color); color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .empty-icon {
+            display: block;
+            margin: 0 auto 12px auto;
+            color: #86efac;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Customer List</h2>
-    <a href="/customers/add" class="add-btn">+ Add New Customer</a>
+    <div class="header-section">
+        <div>
+            <span class="brand-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                AgroShop Management
+            </span>
+            <h2>Farmer & Customer Directory</h2>
+        </div>
+        <a th:href="@{/customers/add}" class="add-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Register New Customer
+        </a>
+    </div>
 
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Address</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="cust : ${customers}">
-            <td th:text="${cust.id}"></td>
-            <td th:text="${cust.user != null ? cust.user.username : 'N/A'}"></td>
-            <td th:text="${cust.firstName + ' ' + cust.lastName}"></td>
-            <td th:text="${cust.email}"></td>
-            <td th:text="${cust.phoneNum}"></td>
-            <td th:text="${cust.address}"></td>
-            <td>
-                <a th:href="@{/customers/delete/{id}(id=${cust.id})}" class="btn-delete" onclick="return confirm('Are you sure?')">Delete</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cust : ${customers}">
+                <td th:text="${cust.id}">1</td>
+                <td>
+                    <span class="user-tag" th:text="${cust.user != null ? cust.user.username : 'N/A'}">username</span>
+                </td>
+                <td th:text="${cust.firstName + ' ' + cust.lastName}">John Doe</td>
+                <td th:text="${cust.email}">john.doe@example.com</td>
+                <td th:text="${cust.phoneNum}">0712345678</td>
+                <td th:text="${cust.address}">123 Main Street</td>
+                <td class="actions-cell">
+                    <a th:href="@{/customers/edit/{id}(id=${cust.id})}" class="btn-edit">Edit</a>
+                    <a th:href="@{/customers/delete/{id}(id=${cust.id})}"
+                       class="btn-delete"
+                       onclick="return confirm('Are you sure you want to delete this customer?')">Delete</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(customers)}">
+                <td colspan="7" class="empty-state">
+                    <svg class="empty-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                    No customers found in AgroShop database. Click <strong>"Register New Customer"</strong> to add one.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 </body>
