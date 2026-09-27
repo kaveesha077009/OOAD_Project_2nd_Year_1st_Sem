@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <title>Product & Stock Management</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        .nav { margin-bottom: 25px; }
+        .nav a { margin-right: 15px; text-decoration: none; font-weight: bold; color: #2e7d32; }
+        .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 25px; max-width: 500px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input, button, select { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #1b5e20; }
+        table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background-color: #2e7d32; color: white; }
+        .btn-stock { width: auto; padding: 5px 12px; margin-right: 4px; font-weight: bold; }
+        .btn-plus { background-color: #0288d1; }
+        .btn-minus { background-color: #e65100; }
+        .warning-tag { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 3px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <a href="/products.html">📦 Products & Stock</a> | 
+        <a href="/categories.html">🏷️ Categories</a> | 
+        <a href="/low-stock.html">⚠️ Low Stock Alerts</a>
+    </div>
+
+    <h2>Product Management</h2>
+
+    <!-- Add Product Form -->
+    <div class="card">
+        <h3>Add New Product</h3>
+        <input type="text" id="name" placeholder="Product Name (e.g. Urea Fertilizer)" required>
+        <input type="text" id="desc" placeholder="Description">
+        <input type="number" step="0.01" id="price" placeholder="Price (LKR)" required>
+        <input type="number" id="stock" placeholder="Initial Stock Quantity" required>
+        <input type="number" id="threshold" placeholder="Low Stock Alert Limit (Default: 10)">
+        <input type="number" id="catId" placeholder="Category ID" required>
+        <button onclick="saveProduct()">Save Product</button>
+    </div>
+
+    <!-- Product Stock Table -->
+    <h3>Inventory Stock</h3>
+    <button onclick="fetchProducts()" style="width: 150px; margin-bottom: 10px;">Refresh List</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price (LKR)</th>
+                <th>Category ID</th>
+                <th>Stock Level</th>
+                <th>Threshold</th>
+                <th>Quick Stock Update</th>
+            </tr>
+        </thead>
+        <tbody id="productTable"></tbody>
+    </table>
+
+    <script>
+        async function saveProduct() {
+            const payload = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('desc').value,
+                price: parseFloat(document.getElementById('price').value),
+                stockQuantity: parseInt(document.getElementById('stock').value),
+                lowStockThreshold: parseInt(document.getElementById('threshold').value) || 10,
+                categoryId: parseInt(document.getElementById('catId').value)
+            };
+
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert('Product successfully added!');
+                fetchProducts();
+            } else {
+                alert('Failed to save product.');
+            }
+        }
+
+        async function fetchProducts() {
+            const res = await fetch('/api/products');
+            const products = await res.json();
+            const table = document.getElementById('productTable');
+            table.innerHTML = '';
+
+            products.forEach(p => {
+                const isLow = p.stockQuantity <= p.lowStockThreshold;
+                table.innerHTML += `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td><b>${p.name}</b></td>
+                        <td>${p.price.toFixed(2)}</td>
+                        <td>${p.categoryId || '-'}</td>
+                        <td>
+                            ${p.stockQuantity}${isLow ? '<span class="warning-tag">LOW</span>' : ''}
+                        </td>
+                        <td>${p.lowStockThreshold}</td>
+                        <td>
+                            <button class="btn-stock btn-plus" onclick="adjustStock(${p.id}, 1)">+1</button>
+                            <button class="btn-stock btn-minus" onclick="adjustStock(${p.id}, -1)">-1</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function adjustStock(productId, change) {
+            await fetch(`/api/products/${productId}/stock?quantityChange=${change}`, {
+                method: 'PUT'
+            });
+            fetchProducts();
+        }
+
+        window.onload = fetchProducts;
+    </script>
+</body>
+</html>

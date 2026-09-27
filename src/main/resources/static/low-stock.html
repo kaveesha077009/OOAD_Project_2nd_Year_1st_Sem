@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <title>Low Stock Monitoring</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        .nav { margin-bottom: 25px; }
+        .nav a { margin-right: 15px; text-decoration: none; font-weight: bold; color: #2e7d32; }
+        .alert-banner { background-color: #ffebee; border-left: 5px solid #d32f2f; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background-color: #d32f2f; color: white; }
+        .btn-restock { background-color: #2e7d32; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-restock:hover { background-color: #1b5e20; }
+        .stock-num { font-size: 16px; font-weight: bold; color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <a href="/products.html">📦 Products & Stock</a> | 
+        <a href="/categories.html">🏷️ Categories</a> | 
+        <a href="/low-stock.html">⚠️ Low Stock Alerts</a>
+    </div>
+
+    <h2>Low Stock Monitoring Dashboard</h2>
+
+    <div class="alert-banner">
+        <strong>⚠️ Attention:</strong> The list below displays only the items that have reached or fallen below the low-stock threshold limit.
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Price (LKR)</th>
+                <th>Current Stock</th>
+                <th>Warning Limit</th>
+                <th>Quick Restock (+10)</th>
+            </tr>
+        </thead>
+        <tbody id="lowStockTable"></tbody>
+    </table>
+
+    <script>
+        async function loadLowStockItems() {
+            const res = await fetch('/api/products/low-stock');
+            const products = await res.json();
+            const table = document.getElementById('lowStockTable');
+            table.innerHTML = '';
+
+            if (products.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center; color: green; font-weight: bold;">Good news! No low-stock items detected.</td></tr>';
+                return;
+            }
+
+            products.forEach(p => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td><b>${p.name}</b></td>
+                        <td>${p.price.toFixed(2)}</td>
+                        <td class="stock-num">${p.stockQuantity}</td>
+                        <td>${p.lowStockThreshold}</td>
+                        <td>
+                            <button class="btn-restock" onclick="restock(${p.id})">Restock +10 Units</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function restock(productId) {
+            await fetch(`/api/products/${productId}/stock?quantityChange=10`, {
+                method: 'PUT'
+            });
+            loadLowStockItems();
+        }
+
+        window.onload = loadLowStockItems;
+    </script>
+</body>
+</html>
