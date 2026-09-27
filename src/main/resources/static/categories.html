@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <title>Category Management</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; }
+        .nav { margin-bottom: 25px; }
+        .nav a { margin-right: 15px; text-decoration: none; font-weight: bold; color: #2e7d32; }
+        .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 25px; max-width: 450px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #1b5e20; }
+        table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background-color: #2e7d32; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="nav">
+        <a href="/products.html">📦 Products & Stock</a> | 
+        <a href="/categories.html">🏷️ Categories</a> | 
+        <a href="/low-stock.html">⚠️ Low Stock Alerts</a>
+    </div>
+
+    <h2>Category Management</h2>
+
+    <div class="card">
+        <h3>Create Category</h3>
+        <input type="text" id="catName" placeholder="Category Name (e.g. Pesticides)" required>
+        <input type="text" id="catDesc" placeholder="Description">
+        <button onclick="createCategory()">Add Category</button>
+    </div>
+
+    <h3>Available Categories</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Category ID</th>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="categoryTable"></tbody>
+    </table>
+
+    <script>
+        async function createCategory() {
+            const data = {
+                name: document.getElementById('catName').value,
+                description: document.getElementById('catDesc').value
+            };
+
+            const res = await fetch('/api/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert('Category Added Successfully!');
+                document.getElementById('catName').value = '';
+                document.getElementById('catDesc').value = '';
+                loadCategories();
+            }
+        }
+
+        async function loadCategories() {
+            const res = await fetch('/api/categories');
+            const categories = await res.json();
+            const table = document.getElementById('categoryTable');
+            table.innerHTML = '';
+
+            categories.forEach(c => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.description || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.onload = loadCategories;
+    </script>
+</body>
+</html>
