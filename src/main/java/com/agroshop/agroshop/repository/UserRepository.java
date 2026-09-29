@@ -1,6 +1,6 @@
 package com.agroshop.agroshop.repository;
 
-import com.agroshop.agroshop.Entity.User; // මෙහි Capital 'E' භාවිතා කර ඇත
+import com.agroshop.agroshop.Entity.User; 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
