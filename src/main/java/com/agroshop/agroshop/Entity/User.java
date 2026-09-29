@@ -26,11 +26,10 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Default Constructor
+ 
     public User() {
     }
 
-    // Parameterized Constructor
     public User(String username, String email, String password, String role, Integer status) {
         this.username = username;
         this.email = email;
@@ -39,7 +38,6 @@ public class User {
         this.status = status;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
