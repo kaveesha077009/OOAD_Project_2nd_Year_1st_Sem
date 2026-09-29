@@ -40,7 +40,7 @@ public class CustomerService {
         user.setPassword(encodedPassword);
         user.setEmail(customer.getEmail());
         user.setRole("CUSTOMER");
-        user.setStatus(true);
+        user.setStatus(1);
 
         User savedUser = userRepository.save(user);
 

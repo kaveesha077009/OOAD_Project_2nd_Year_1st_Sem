@@ -11,30 +11,35 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, length = 100)
-    private String password;
-
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 20)
-    private String role = "CUSTOMER";
+    @Column(nullable = false)
+    private String password;
 
-    private Boolean status = true;
+    private String role;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private Integer status = 1;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Default Constructor
+    public User() {
     }
 
-    public User() {}
+    // Parameterized Constructor
+    public User(String username, String email, String password, String role, Integer status) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.status = status;
+    }
 
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -51,20 +56,20 @@ public class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getRole() {
@@ -75,11 +80,11 @@ public class User {
         this.role = role;
     }
 
-    public Boolean getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Boolean status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

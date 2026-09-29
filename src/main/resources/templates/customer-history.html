@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Order History - AgroShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #15803d; /* Fresh Crop Green */
+            --primary-hover: #166534;
+            --bg-color: #f0fdf4; /* Light Mint Tint */
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #bbf7d0;
+            --focus-ring: rgba(21, 128, 61, 0.2);
+            --badge-completed-bg: #dcfce7;
+            --badge-completed-color: #15803d;
+            --badge-pending-bg: #fef9c3;
+            --badge-pending-color: #a16207;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .list-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 36px 32px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(22, 101, 52, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ADD8E6;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #14532d;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .sub-heading {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.925rem;
+        }
+
+        thead {
+            background-color: #f0fdf4;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            padding: 14px 16px;
+            font-weight: 600;
+            color: #166534;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0fdf4;
+            color: var(--text-main);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #fafdfb;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.completed {
+            background-color: var(--badge-completed-bg);
+            color: var(--badge-completed-color);
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-badge.pending {
+            background-color: var(--badge-pending-bg);
+            color: var(--badge-pending-color);
+            border: 1px solid #fef08a;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="list-container">
+    <div class="header">
+        <span class="brand-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            AgroShop Customer Portal
+        </span>
+        <h2>Customer Order History</h2>
+        <p class="sub-heading">පාරිභෝගිකයා සිදුකළ පෙර ඇණවුම් විස්තර (Previous Orders)</p>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><strong>#1001</strong></td>
+                <td>2026-09-20</td>
+                <td>LKR 2,450.00</td>
+                <td><span class="status-badge completed">COMPLETED</span></td>
+            </tr>
+            <tr>
+                <td><strong>#1002</strong></td>
+                <td>2026-09-24</td>
+                <td>LKR 1,200.00</td>
+                <td><span class="status-badge pending">PENDING</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a th:href="@{/customers}" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Back to Customer Directory
+    </a>
+</div>
+
+</body>
+</html>
