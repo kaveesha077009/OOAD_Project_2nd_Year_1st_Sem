@@ -28,4 +28,14 @@ public class PaymentController {
     public Payment getPaymentByOrder(@PathVariable Long orderId) {
         return paymentService.getPaymentByOrderId(orderId);
     }
+
+    @PatchMapping("/{paymentId}/confirm")
+    public Payment confirmPayment(@PathVariable Long paymentId) {
+        return paymentService.confirmPayment(paymentId);
+    }
+
+    @PatchMapping("/{paymentId}/fail")
+    public Payment failPayment(@PathVariable Long paymentId) {
+        return paymentService.failPayment(paymentId);
+    }
 }
