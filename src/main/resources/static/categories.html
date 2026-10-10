@@ -1,89 +1,80 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Category Management</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; }
-        .nav { margin-bottom: 25px; }
-        .nav a { margin-right: 15px; text-decoration: none; font-weight: bold; color: #2e7d32; }
-        .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 25px; max-width: 450px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        input, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #1b5e20; }
-        table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
-        th { background-color: #2e7d32; color: white; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Categories | AgroShop</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<main>
+  <div id="page-head"></div>
 
-    <div class="nav">
-        <a href="/products.html">📦 Products & Stock</a> | 
-        <a href="/categories.html">🏷️ Categories</a> | 
-        <a href="/low-stock.html">⚠️ Low Stock Alerts</a>
+  <section class="panel">
+    <h2 id="form-title">Add a category</h2>
+    <div class="grid">
+      <div><label for="name">Category name</label><input id="name" maxlength="100" placeholder="Fertilizer"></div>
+      <div><label for="desc">Description (optional)</label><input id="desc" maxlength="255"></div>
     </div>
-
-    <h2>Category Management</h2>
-
-    <div class="card">
-        <h3>Create Category</h3>
-        <input type="text" id="catName" placeholder="Category Name (e.g. Pesticides)" required>
-        <input type="text" id="catDesc" placeholder="Description">
-        <button onclick="createCategory()">Add Category</button>
+    <div class="actions">
+      <button id="save">Add category</button>
+      <button id="cancel" class="ghost" hidden>Cancel editing</button>
     </div>
+  </section>
 
-    <h3>Available Categories</h3>
+  <div class="table-wrap panel" style="padding:0">
     <table>
-        <thead>
-            <tr>
-                <th>Category ID</th>
-                <th>Name</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody id="categoryTable"></tbody>
+      <thead><tr><th>Name</th><th>Description</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
     </table>
+  </div>
+</main>
 
-    <script>
-        async function createCategory() {
-            const data = {
-                name: document.getElementById('catName').value,
-                description: document.getElementById('catDesc').value
-            };
+<script src="js/app.js"></script>
+<script>
+  renderLayout('categories.html', 'Categories', 'Group products so staff and customers can find them quickly.');
 
-            const res = await fetch('/api/categories', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+  const $ = (id) => document.getElementById(id);
+  let editingId = null;
 
-            if (res.ok) {
-                alert('Category Added Successfully!');
-                document.getElementById('catName').value = '';
-                document.getElementById('catDesc').value = '';
-                loadCategories();
-            }
-        }
+  async function load() {
+    const cats = await api('GET', '/api/categories');
+    $('rows').replaceChildren(...(cats.length ? cats.map(c => h('tr', {},
+      h('td', {}, h('strong', {}, c.name)),
+      h('td', {}, c.description || ''),
+      h('td', {}, h('div', { class: 'row-actions' },
+        h('button', { class: 'small ghost', onclick: () => startEdit(c) }, 'Edit'),
+        h('button', { class: 'small danger', onclick: () => remove(c) }, 'Remove')))
+    )) : [h('tr', {}, h('td', { colspan: 3, class: 'empty' }, 'No categories yet. Add one above.'))]));
+  }
 
-        async function loadCategories() {
-            const res = await fetch('/api/categories');
-            const categories = await res.json();
-            const table = document.getElementById('categoryTable');
-            table.innerHTML = '';
+  function reset() {
+    editingId = null; $('name').value = ''; $('desc').value = '';
+    $('form-title').textContent = 'Add a category'; $('save').textContent = 'Add category'; $('cancel').hidden = true;
+  }
 
-            categories.forEach(c => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${c.id}</td>
-                        <td><b>${c.name}</b></td>
-                        <td>${c.description || '-'}</td>
-                    </tr>
-                `;
-            });
-        }
+  function startEdit(c) {
+    editingId = c.id; $('name').value = c.name; $('desc').value = c.description || '';
+    $('form-title').textContent = 'Edit ' + c.name; $('save').textContent = 'Save changes'; $('cancel').hidden = false;
+    $('name').focus();
+  }
 
-        window.onload = loadCategories;
-    </script>
+  $('save').addEventListener('click', () => run(async () => {
+    const body = { name: $('name').value, description: $('desc').value || null };
+    const wasEditing = editingId !== null;
+    if (wasEditing) await api('PUT', '/api/categories/' + editingId, body);
+    else await api('POST', '/api/categories', body);
+    toast(wasEditing ? 'Category updated' : 'Category added');
+    reset(); await load();
+  }));
+  $('cancel').addEventListener('click', reset);
+
+  async function remove(c) {
+    if (!confirm('Remove the category ' + c.name + '?')) return;
+    await run(async () => { await api('DELETE', '/api/categories/' + c.id); toast('Category removed'); await load(); });
+  }
+
+  run(load);
+</script>
 </body>
 </html>

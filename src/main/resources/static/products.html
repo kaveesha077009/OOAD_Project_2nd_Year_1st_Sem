@@ -1,126 +1,159 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Product & Stock Management</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f4f7f6; }
-        .nav { margin-bottom: 25px; }
-        .nav a { margin-right: 15px; text-decoration: none; font-weight: bold; color: #2e7d32; }
-        .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 25px; max-width: 500px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        input, button, select { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #2e7d32; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #1b5e20; }
-        table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
-        th { background-color: #2e7d32; color: white; }
-        .btn-stock { width: auto; padding: 5px 12px; margin-right: 4px; font-weight: bold; }
-        .btn-plus { background-color: #0288d1; }
-        .btn-minus { background-color: #e65100; }
-        .warning-tag { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 3px 6px; border-radius: 4px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products and stock | AgroShop</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<main>
+  <div id="page-head"></div>
 
-    <div class="nav">
-        <a href="/products.html">📦 Products & Stock</a> | 
-        <a href="/categories.html">🏷️ Categories</a> | 
-        <a href="/low-stock.html">⚠️ Low Stock Alerts</a>
+  <section class="panel">
+    <h2 id="form-title">Add a product</h2>
+    <div class="grid">
+      <div><label for="name">Product name</label><input id="name" maxlength="100" placeholder="Urea fertilizer"></div>
+      <div><label for="category">Category</label><select id="category"></select></div>
+      <div><label for="unit">Unit</label><input id="unit" maxlength="20" placeholder="kg, bag, piece"></div>
+      <div><label for="price">Price (Rs.)</label><input id="price" type="number" min="0" step="0.01"></div>
+      <div><label for="quantity">Opening stock</label><input id="quantity" type="number" min="0" step="0.01" value="0"></div>
+      <div><label for="minimum">Alert when stock falls to</label><input id="minimum" type="number" min="0" step="0.01" value="5"></div>
+      <div class="wide"><label for="desc">Description (optional)</label><textarea id="desc"></textarea></div>
     </div>
-
-    <h2>Product Management</h2>
-
-    <!-- Add Product Form -->
-    <div class="card">
-        <h3>Add New Product</h3>
-        <input type="text" id="name" placeholder="Product Name (e.g. Urea Fertilizer)" required>
-        <input type="text" id="desc" placeholder="Description">
-        <input type="number" step="0.01" id="price" placeholder="Price (LKR)" required>
-        <input type="number" id="stock" placeholder="Initial Stock Quantity" required>
-        <input type="number" id="threshold" placeholder="Low Stock Alert Limit (Default: 10)">
-        <input type="number" id="catId" placeholder="Category ID" required>
-        <button onclick="saveProduct()">Save Product</button>
+    <div class="actions">
+      <button id="save">Add product</button>
+      <button id="cancel" class="ghost" hidden>Cancel editing</button>
     </div>
+  </section>
 
-    <!-- Product Stock Table -->
-    <h3>Inventory Stock</h3>
-    <button onclick="fetchProducts()" style="width: 150px; margin-bottom: 10px;">Refresh List</button>
-
+  <div class="toolbar">
+    <h2 style="margin:0">Inventory</h2>
+    <input id="search" type="search" placeholder="Search by name or category" aria-label="Search products">
+  </div>
+  <div class="table-wrap panel" style="padding:0">
     <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Price (LKR)</th>
-                <th>Category ID</th>
-                <th>Stock Level</th>
-                <th>Threshold</th>
-                <th>Quick Stock Update</th>
-            </tr>
-        </thead>
-        <tbody id="productTable"></tbody>
+      <thead><tr>
+        <th>Product</th><th>Category</th><th class="num">Price</th><th class="num">In stock</th><th>Adjust stock</th><th></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
     </table>
+  </div>
+</main>
 
-    <script>
-        async function saveProduct() {
-            const payload = {
-                name: document.getElementById('name').value,
-                description: document.getElementById('desc').value,
-                price: parseFloat(document.getElementById('price').value),
-                stockQuantity: parseInt(document.getElementById('stock').value),
-                lowStockThreshold: parseInt(document.getElementById('threshold').value) || 10,
-                categoryId: parseInt(document.getElementById('catId').value)
-            };
+<script src="js/app.js"></script>
+<script>
+  renderLayout('products.html', 'Products and stock', 'Add products, keep stock counts right, and spot items that are running out.');
 
-            const res = await fetch('/api/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+  let products = [];
+  let editingId = null;
+  const $ = (id) => document.getElementById(id);
 
-            if (res.ok) {
-                alert('Product successfully added!');
-                fetchProducts();
-            } else {
-                alert('Failed to save product.');
-            }
-        }
+  async function loadCategories() {
+    const cats = await api('GET', '/api/categories');
+    const sel = $('category');
+    sel.replaceChildren(h('option', { value: '' }, cats.length ? 'Choose a category' : 'Add a category first'),
+      cats.map(c => h('option', { value: c.id }, c.name)));
+  }
 
-        async function fetchProducts() {
-            const res = await fetch('/api/products');
-            const products = await res.json();
-            const table = document.getElementById('productTable');
-            table.innerHTML = '';
+  async function loadProducts() {
+    products = await api('GET', '/api/products');
+    renderRows();
+  }
 
-            products.forEach(p => {
-                const isLow = p.stockQuantity <= p.lowStockThreshold;
-                table.innerHTML += `
-                    <tr>
-                        <td>${p.id}</td>
-                        <td><b>${p.name}</b></td>
-                        <td>${p.price.toFixed(2)}</td>
-                        <td>${p.categoryId || '-'}</td>
-                        <td>
-                            ${p.stockQuantity}${isLow ? '<span class="warning-tag">LOW</span>' : ''}
-                        </td>
-                        <td>${p.lowStockThreshold}</td>
-                        <td>
-                            <button class="btn-stock btn-plus" onclick="adjustStock(${p.id}, 1)">+1</button>
-                            <button class="btn-stock btn-minus" onclick="adjustStock(${p.id}, -1)">-1</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+  function renderRows() {
+    const q = $('search').value.trim().toLowerCase();
+    const list = products.filter(p => (p.name + ' ' + p.categoryName).toLowerCase().includes(q));
+    const body = $('rows');
+    if (!list.length) {
+      body.replaceChildren(h('tr', {}, h('td', { colspan: 6, class: 'empty' },
+        products.length ? 'No product matches your search.' : 'No products yet. Add your first product above.')));
+      return;
+    }
+    body.replaceChildren(...list.map(p => h('tr', { class: p.lowStock ? 'low' : '' },
+      h('td', {}, h('strong', {}, p.name), p.description ? h('div', { class: 'sub', style: 'margin:0;font-size:.85rem' }, p.description) : null),
+      h('td', {}, p.categoryName),
+      h('td', { class: 'num' }, money(p.price) + ' / ' + p.unit),
+      h('td', { class: 'num' }, num(p.quantity) + ' ' + p.unit, p.lowStock ? h('span', { class: 'badge' }, 'Low') : null),
+      h('td', {}, h('div', { class: 'row-actions' },
+        h('button', { class: 'small', title: 'Remove 1', 'aria-label': 'Remove one ' + p.unit + ' of ' + p.name, onclick: () => adjust(p.id, -1) }, '-1'),
+        h('button', { class: 'small', title: 'Add 1', 'aria-label': 'Add one ' + p.unit + ' of ' + p.name, onclick: () => adjust(p.id, 1) }, '+1'),
+        h('button', { class: 'small ghost', onclick: () => adjust(p.id, null) }, 'Set amount'))),
+      h('td', {}, h('div', { class: 'row-actions' },
+        h('button', { class: 'small ghost', onclick: () => startEdit(p) }, 'Edit'),
+        h('button', { class: 'small danger', onclick: () => remove(p) }, 'Remove')))
+    )));
+  }
 
-        async function adjustStock(productId, change) {
-            await fetch(`/api/products/${productId}/stock?quantityChange=${change}`, {
-                method: 'PUT'
-            });
-            fetchProducts();
-        }
+  async function adjust(id, change) {
+    if (change === null) {
+      const v = prompt('Enter the change in stock. Use a minus sign to take stock out, e.g. -3 or 25');
+      if (v === null || v.trim() === '' || isNaN(Number(v))) return;
+      change = Number(v);
+    }
+    await run(async () => {
+      await api('PUT', '/api/products/' + id + '/stock?quantityChange=' + encodeURIComponent(change));
+      await loadProducts();
+    });
+  }
 
-        window.onload = fetchProducts;
-    </script>
+  function payload() {
+    return {
+      name: $('name').value,
+      description: $('desc').value || null,
+      price: $('price').value === '' ? null : Number($('price').value),
+      unit: $('unit').value,
+      categoryId: $('category').value === '' ? null : Number($('category').value),
+      quantity: $('quantity').value === '' ? null : Number($('quantity').value),
+      minimumStock: $('minimum').value === '' ? null : Number($('minimum').value),
+    };
+  }
+
+  function resetForm() {
+    editingId = null;
+    for (const id of ['name', 'unit', 'price', 'desc']) $(id).value = '';
+    $('category').value = '';
+    $('quantity').value = 0; $('minimum').value = 5;
+    $('quantity').disabled = false;
+    $('form-title').textContent = 'Add a product';
+    $('save').textContent = 'Add product';
+    $('cancel').hidden = true;
+  }
+
+  function startEdit(p) {
+    editingId = p.id;
+    $('name').value = p.name; $('unit').value = p.unit; $('price').value = p.price;
+    $('desc').value = p.description || ''; $('category').value = p.categoryId;
+    $('minimum').value = p.minimumStock;
+    $('quantity').value = p.quantity; $('quantity').disabled = true; // change stock with the buttons so it stays traceable
+    $('form-title').textContent = 'Edit ' + p.name;
+    $('save').textContent = 'Save changes';
+    $('cancel').hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('name').focus();
+  }
+
+  $('save').addEventListener('click', () => run(async () => {
+    const wasEditing = editingId !== null;
+    if (wasEditing) await api('PUT', '/api/products/' + editingId, payload());
+    else await api('POST', '/api/products', payload());
+    toast(wasEditing ? 'Product updated' : 'Product added');
+    resetForm();
+    await loadProducts();
+  }));
+  $('cancel').addEventListener('click', resetForm);
+  $('search').addEventListener('input', renderRows);
+
+  async function remove(p) {
+    if (!confirm('Remove ' + p.name + ' from the shop list? Past orders keep their records.')) return;
+    await run(async () => {
+      await api('DELETE', '/api/products/' + p.id);
+      toast('Product removed');
+      await loadProducts();
+    });
+  }
+
+  run(async () => { await loadCategories(); await loadProducts(); });
+</script>
 </body>
 </html>
