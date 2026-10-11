@@ -1,6 +1,7 @@
 
 package com.agroshop.agroshop.service;
 
+import com.agroshop.agroshop.Entity.PurchaseOrderItem;
 import com.agroshop.agroshop.Entity.PurchaseOrder;
 import com.agroshop.agroshop.Entity.Supplier;
 import com.agroshop.agroshop.repository.PurchaseOrderRepository;
@@ -179,4 +180,161 @@ class PurchaseOrderServiceTest {
         verify(orderRepository, times(1))
                 .save(any(PurchaseOrder.class));
     }
+
+
+    // Test 7: Create an order with multiple products
+    @Test
+    void testCreateMultipleProducts() {
+
+        List<PurchaseOrderItem> items = List.of(
+                new PurchaseOrderItem(
+                        "Fertilizer",
+                        10,
+                        new BigDecimal("2500.00")
+                ),
+                new PurchaseOrderItem(
+                        "Pesticide",
+                        5,
+                        new BigDecimal("1800.00")
+                ),
+                new PurchaseOrderItem(
+                        "Sprinkler",
+                        8,
+                        new BigDecimal("750.00")
+                )
+        );
+
+        when(supplierRepository.findById(1L))
+                .thenReturn(Optional.of(supplier));
+
+        when(orderRepository.save(any(PurchaseOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        PurchaseOrder result = service.createMultiple(
+                1L,
+                LocalDate.of(2026, 10, 11),
+                items
+        );
+
+        assertEquals(3, result.getItems().size());
+        assertEquals("Pending", result.getStatus());
+        assertEquals(supplier, result.getSupplier());
+
+        verify(orderRepository).save(any(PurchaseOrder.class));
+    }
+
+    // Test 8: Calculate total amount
+    @Test
+    void testMultipleProductsTotal() {
+
+        PurchaseOrder purchase = new PurchaseOrder();
+
+        purchase.addItem(new PurchaseOrderItem(
+                "Fertilizer",
+                10,
+                new BigDecimal("2500.00")
+        ));
+
+        purchase.addItem(new PurchaseOrderItem(
+                "Pesticide",
+                5,
+                new BigDecimal("1800.00")
+        ));
+
+        purchase.addItem(new PurchaseOrderItem(
+                "Sprinkler",
+                8,
+                new BigDecimal("750.00")
+        ));
+
+        assertEquals(
+                0,
+                new BigDecimal("40000.00")
+                        .compareTo(purchase.getTotalAmount())
+        );
+    }
+
+    // Test 9: Reject an empty product list
+    @Test
+    void testEmptyProductList() {
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.createMultiple(
+                        1L,
+                        LocalDate.now(),
+                        List.of()
+                )
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+
+        verify(orderRepository, never())
+                .save(any(PurchaseOrder.class));
+    }
+
+    // Test 10: Reject invalid item quantity
+    @Test
+    void testMultipleProductsInvalidQuantity() {
+
+        List<PurchaseOrderItem> items = List.of(
+                new PurchaseOrderItem(
+                        "Fertilizer",
+                        -5,
+                        new BigDecimal("2500.00")
+                )
+        );
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.createMultiple(
+                        1L,
+                        LocalDate.now(),
+                        items
+                )
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+
+        verify(orderRepository, never())
+                .save(any(PurchaseOrder.class));
+    }
+
+    // Test 11: Verify order-item relationships
+    @Test
+    void testPurchaseItemRelationships() {
+
+        List<PurchaseOrderItem> items = List.of(
+                new PurchaseOrderItem(
+                        "Fertilizer",
+                        10,
+                        new BigDecimal("2500.00")
+                ),
+                new PurchaseOrderItem(
+                        "Pesticide",
+                        5,
+                        new BigDecimal("1800.00")
+                )
+        );
+
+        when(supplierRepository.findById(1L))
+                .thenReturn(Optional.of(supplier));
+
+        when(orderRepository.save(any(PurchaseOrder.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        PurchaseOrder result = service.createMultiple(
+                1L,
+                LocalDate.now(),
+                items
+        );
+
+        // Both items must belong to the same order
+        for (PurchaseOrderItem item : result.getItems()) {
+            assertSame(result, item.getPurchaseOrder());
+        }
+
+        assertEquals(2, result.getItems().size());
+    }
+
 }
