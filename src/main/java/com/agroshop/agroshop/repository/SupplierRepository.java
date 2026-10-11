@@ -1,8 +1,14 @@
+
 package com.agroshop.agroshop.repository;
 
 import com.agroshop.agroshop.Entity.Supplier;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SupplierRepository extends JpaRepository<Supplier, Long> {
+import java.util.Optional;
 
+public interface SupplierRepository
+        extends JpaRepository<Supplier, Long> {
+
+    // Find a supplier using their phone number
+    Optional<Supplier> findByPhone(String phone);
 }
