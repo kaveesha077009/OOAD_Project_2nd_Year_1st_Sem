@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/css/shop.css" rel="stylesheet">
+    <title>Shop - AgroShop</title>
+</head>
+<body data-page="shop">
+<div th:replace="~{fragments/shop-nav :: nav('shop')}"></div>
+
+<main class="container shop-main">
+    <h1 class="page-title">Products</h1>
+    <p class="page-sub">Add what you need to your cart, then pay with cash or bank transfer.</p>
+
+    <div class="row g-2 mb-4">
+        <div class="col-md-6">
+            <label for="search" class="visually-hidden">Search products</label>
+            <input id="search" type="search" class="form-control" placeholder="Search products">
+        </div>
+        <div class="col-md-4">
+            <label for="category" class="visually-hidden">Category</label>
+            <select id="category" class="form-select"><option value="">All categories</option></select>
+        </div>
+        <div class="col-md-2 d-flex align-items-center">
+            <span id="resultInfo" class="text-muted small" aria-live="polite"></span>
+        </div>
+    </div>
+
+    <div id="productGrid" class="row g-3" aria-live="polite">
+        <div class="col-12 text-muted">Loading products...</div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/shop.js"></script>
+</body>
+</html>
