@@ -1,5 +1,7 @@
 package com.agroshop.agroshopmangementsystem.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class EmployeeDTO {
     private Long id;
     private String firstName;
@@ -7,6 +9,7 @@ public class EmployeeDTO {
     private String username;
     private String email;
     private String phoneNum;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String designation;
     private Double salary;

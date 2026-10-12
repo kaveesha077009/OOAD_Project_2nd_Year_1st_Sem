@@ -1,6 +1,7 @@
 package com.agroshop.agroshopmangementsystem.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,11 +14,14 @@ public class User {
 
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
     private String role;
     private Integer status;
 
+    @JsonIgnore
     private String resetToken;
+    @JsonIgnore
     private LocalDateTime tokenExpiry;
 
     public User() {}

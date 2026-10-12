@@ -26,11 +26,27 @@ public class EmployeeController {
     public ResponseEntity<?> addEmployee(@RequestBody EmployeeDTO dto) {
         try {
             Employee saved = employeeService.addEmployee(dto);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.status(201).body(
+                    java.util.Map.of(
+                            "message", "Employee created successfully",
+                            "id", saved.getId()
+                    )
+            );
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+
+    // Update an existing employee
+    @PutMapping("/{id}")
+    public ResponseEntity<EmployeeDTO> updateEmployee(
+            @PathVariable Long id,
+            @RequestBody EmployeeDTO dto) {
+
+        EmployeeDTO updated = employeeService.updateEmployee(id, dto);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
