@@ -383,3 +383,8 @@ WHERE c.id IN (
     GROUP BY customer_id 
     HAVING SUM(total_amount) > 1000.00
 );
+-- Walk-in customer: used by the shop counter when an employee records a sale for a customer without an account
+INSERT INTO users (id, username, password, email, role, status) VALUES
+(6, 'walk_in', 'hash_walkin_disabled', 'walkin@agroshop.lk', 'CUSTOMER', FALSE);
+INSERT INTO customer (id, user_id, first_name, last_name, email, phone_num, address) VALUES
+(4, 6, 'Walk-in', 'Customer', 'walkin@agroshop.lk', '0000000000', 'Counter sale');

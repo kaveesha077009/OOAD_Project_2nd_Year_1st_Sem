@@ -40,4 +40,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiError("This change conflicts with existing data (duplicate name or linked records)."));
     }
+
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ApiError> unreadable(Exception ex) {
+        return ResponseEntity.badRequest().body(new ApiError("The request contains a missing or invalid value"));
+    }
 }

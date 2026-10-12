@@ -32,7 +32,7 @@
 
 <script src="js/app.js"></script>
 <script>
-  renderLayout('categories.html', 'Categories', 'Group products so staff and customers can find them quickly.');
+  const ready = renderLayout('categories.html', 'Categories', 'Group products so staff and customers can find them quickly.');
 
   const $ = (id) => document.getElementById(id);
   let editingId = null;
@@ -74,7 +74,7 @@
     await run(async () => { await api('DELETE', '/api/categories/' + c.id); toast('Category removed'); await load(); });
   }
 
-  run(load);
+  ready.then(me => { if (me) run(load); });
 </script>
 </body>
 </html>

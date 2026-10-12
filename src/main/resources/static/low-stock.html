@@ -19,7 +19,7 @@
 
 <script src="js/app.js"></script>
 <script>
-  renderLayout('low-stock.html', 'Low stock', 'These products are at or below their alert level. Order more from your suppliers.');
+  const ready = renderLayout('low-stock.html', 'Low stock', 'These products are at or below their alert level. Order more from your suppliers.');
 
   async function load() {
     const list = await api('GET', '/api/products/low-stock');
@@ -38,7 +38,7 @@
     }) : [h('tr', {}, h('td', { colspan: 5, class: 'empty' }, 'Every product is above its alert level.'))]));
   }
 
-  run(load);
+  ready.then(me => { if (me) run(load); });
 </script>
 </body>
 </html>

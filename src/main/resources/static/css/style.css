@@ -79,3 +79,40 @@ tr.low td { background: var(--amber-bg); }
   main { padding: 20px 16px; }
 }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+
+/* sidebar user */
+.side { display: flex; flex-direction: column; }
+.side-user { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,.12); }
+.side-user small { display: block; color: #9db3a3; margin-bottom: 8px; text-transform: capitalize; }
+.side-user a { padding: 0; border: 0; color: #fff; }
+.side-user button.ghost { background: transparent; color: #dbe7de; border-color: rgba(255,255,255,.3); }
+
+/* shop */
+.shop { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.card .cat { font-size: .82rem; color: var(--muted); }
+.card .price { font-size: 1.15rem; font-weight: 700; color: var(--brand-dark); }
+.card .buy { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+.card .buy input { width: 76px; }
+.card.out { opacity: .6; }
+.cart { position: sticky; top: 24px; }
+.cart .line { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.cart .line input { width: 72px; padding: 4px 6px; }
+.total { display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 700; padding: 14px 0 10px; }
+.note { background: var(--amber-bg); border-radius: var(--radius); padding: 10px 12px; font-size: .88rem; margin: 10px 0; }
+.filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.filters > * { max-width: 260px; }
+
+/* status pills */
+.pill { display: inline-block; padding: 1px 10px; border-radius: 99px; font-size: .8rem; font-weight: 700; background: #e3e8e4; color: var(--ink); }
+.pill.good { background: #d8ecdc; color: #1c4a29; }
+.pill.warn { background: var(--amber-bg); color: #6b4a00; }
+.pill.bad { background: var(--danger-bg); color: var(--danger); }
+.items { font-size: .88rem; color: var(--muted); }
+
+/* login */
+.login-wrap { margin: auto; width: min(400px, 92vw); }
+.login-wrap h1 { margin-bottom: 4px; }
+.login-wrap .panel > * + * { margin-top: 14px; }
+@media (max-width: 960px) { .shop { grid-template-columns: 1fr; } .cart { position: static; } }

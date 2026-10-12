@@ -1,0 +1,10 @@
+package com.agroshop.demo.repository;
+
+import com.agroshop.demo.entity.Payment;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    Optional<Payment> findByOrderId(Long orderId);
+}
