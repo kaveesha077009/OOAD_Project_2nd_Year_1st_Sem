@@ -1,68 +1,946 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>AgroShop | Product, Category & Inventory</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AgroShop | Management Dashboard</title>
     <style>
-        :root{font-family:system-ui,Arial,sans-serif;color:#173025;background:#f5f8f5}*{box-sizing:border-box}body{margin:0}header{background:#116b43;color:white;padding:22px max(20px,calc((100% - 1100px)/2))}header h1{margin:0;font-size:26px}header p{margin:6px 0 0;color:#d5f4e3}main{max-width:1100px;margin:25px auto;padding:0 18px}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}button{cursor:pointer;border:0;border-radius:9px;padding:10px 15px;font-weight:650;background:#116b43;color:white}button:hover{filter:brightness(.94)}button.secondary{background:#e0ede5;color:#135636}button.danger{background:#c83d3d}.tabs button.active{background:#07482a}.panel{background:white;border:1px solid #dbe6df;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 4px 14px #1538200a}.product-photo{width:78px;height:65px;object-fit:cover;border-radius:10px;background:#edf3ee;border:1px solid #dbe6df}.photo-placeholder{width:78px;height:65px;display:grid;place-items:center;border-radius:10px;background:#edf3ee;font-size:25px}.photo-preview{width:130px;height:105px;object-fit:cover;border-radius:10px;border:1px solid #dbe6df;margin:8px 0}.photo-action{font-size:12px;padding:7px 10px}.hint{font-size:12px;color:#52725d;margin:5px 0 10px}h2{margin:0 0 15px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.stat{background:#e9f5ed;border-radius:12px;padding:17px}.stat strong{font-size:28px;display:block}.stat small{color:#52725d}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}input,select,textarea{width:100%;padding:11px;border:1px solid #c9d8cd;border-radius:8px;font:inherit}label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.field{margin-bottom:10px}table{border-collapse:collapse;width:100%;min-width:650px}th,td{padding:12px;text-align:left;border-bottom:1px solid #e5ede7}th{background:#eff7f0;font-size:13px}.scroll{overflow-x:auto}.pill{border-radius:100px;padding:4px 9px;font-size:12px;font-weight:700;background:#e2f5e8;color:#126438}.pill.low{background:#fff1d6;color:#8c5400}.pill.out{background:#ffe2e2;color:#9d2424}.hidden{display:none}.message{padding:12px 16px;border-radius:10px;margin-bottom:15px;background:#e8f4ee}.message.error{background:#ffe4e4;color:#9b2020}.actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.actions input{max-width:90px}footer{text-align:center;color:#66806c;font-size:13px;padding:20px}
+        /* --- CSS Variables & Theming --- */
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --secondary: #e5e7eb;
+            --secondary-hover: #d1d5db;
+            --secondary-text: #374151;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --bg-body: #f3f4f6;
+            --bg-surface: #ffffff;
+            --border: #e5e7eb;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* --- Global Reset & Typography --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Layout --- */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        header p {
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #a7f3d0;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* --- Navigation Tabs --- */
+        .tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tabs button {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tabs button:hover {
+            background-color: var(--secondary);
+            color: var(--text-main);
+        }
+
+        .tabs button.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tabs button#refresh {
+            margin-left: auto;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--secondary-text);
+        }
+
+        .tabs button#refresh:hover {
+            background-color: var(--secondary);
+        }
+
+        /* --- Cards & Panels --- */
+        .panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--text-main);
+        }
+
+        /* --- Statistics Grid --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .stat {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat small {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+
+        .stat strong {
+            font-size: 2rem;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        /* --- Forms & Inputs --- */
+        .formgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .field {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: var(--bg-surface);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.375rem;
+        }
+
+        /* --- Buttons --- */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.625rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            background: var(--primary);
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { background: var(--primary-hover); }
+        button:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+        button.secondary {
+            background: var(--secondary);
+            color: var(--secondary-text);
+        }
+        button.secondary:hover { background: var(--secondary-hover); }
+
+        button.danger { background: var(--danger); }
+        button.danger:hover { background: var(--danger-hover); }
+
+        .photo-action { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+
+        /* --- Tables --- */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .scroll {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 700px;
+            background: var(--bg-surface);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:hover { background-color: #f9fafb; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* --- Images --- */
+        .product-photo {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .photo-placeholder {
+            width: 64px;
+            height: 64px;
+            display: grid;
+            place-items: center;
+            border-radius: var(--radius-md);
+            background: var(--bg-body);
+            font-size: 1.5rem;
+            border: 1px dashed #d1d5db;
+        }
+
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-top: 0.75rem;
+        }
+
+        /* --- Status Pills --- */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .pill.low { background: #fef3c7; color: #92400e; }
+        .pill.out { background: #fee2e2; color: #991b1b; }
+
+        /* --- Utilities & Toast Notifications --- */
+        .hidden { display: none !important; }
+        .actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .actions input { max-width: 100px; padding: 0.4rem 0.8rem; }
+
+        /* Toast Container */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+
+        .toast {
+            min-width: 250px;
+            background: #1f2937;
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .toast.error {
+            background: var(--danger);
+            border-left: 4px solid #7f1d1d;
+        }
+
+        .toast.success {
+            background: var(--primary);
+            border-left: 4px solid #064e3b;
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
     </style>
 </head>
 <body>
-<header><h1>🌱 AgroShop Management</h1><p>Product • Category • Inventory Management</p></header>
-<main>
-    <div id="message" class="message hidden" role="status"></div>
-    <div class="tabs"><button class="active" data-tab="products">Products</button><button data-tab="categories" class="secondary">Categories</button><button data-tab="inventory" class="secondary">Inventory</button><button data-tab="alerts" class="secondary">Low Stock Alerts</button><button id="refresh" class="secondary">↻ Refresh</button></div>
-    <section class="panel"><div class="grid"><div class="stat"><small>Total Products</small><strong id="productCount">—</strong></div><div class="stat"><small>Categories</small><strong id="categoryCount">—</strong></div><div class="stat"><small>Inventory Records</small><strong id="inventoryCount">—</strong></div><div class="stat"><small>Low Stock (under 10)</small><strong id="lowCount">—</strong></div></div></section>
-    <section id="products" class="tabcontent"><div class="panel"><div class="toolbar"><h2>Products</h2><input id="search" placeholder="Search products..." style="max-width:300px"></div><div class="scroll"><table><thead><tr><th>Image</th><th>ID</th><th>Name</th><th>Category</th><th>Price (Rs.)</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div></div><div class="panel"><h2>Add Product</h2><form id="productForm"><div class="formgrid"><div class="field"><label for="productName">Product name</label><input id="productName" required></div><div class="field"><label for="productPrice">Price (Rs.)</label><input id="productPrice" type="number" min="0" step="0.01" required></div><div class="field"><label for="productCategory">Category</label><select id="productCategory" required></select></div><div class="field"><label for="productUnit">Unit (optional)</label><input id="productUnit" placeholder="e.g. 1 kg"></div></div><div class="field"><label for="productImage">Product image (optional)</label><input id="productImage" type="file" accept="image/png,image/jpeg,image/webp"><div class="hint">Choose a photo from your computer (up to 2 MB). Photos are saved in this browser for this demo.</div><img id="productImagePreview" class="photo-preview hidden" alt="Selected product image preview"></div><div class="field"><label for="productDescription">Description (optional)</label><textarea id="productDescription" rows="2"></textarea></div><button type="submit">Save Product</button></form></div></section>
-    <section id="categories" class="tabcontent hidden"><div class="panel"><h2>Categories</h2><div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Description</th></tr></thead><tbody id="categoriesBody"></tbody></table></div></div><div class="panel"><h2>Add Category</h2><form id="categoryForm"><div class="formgrid"><div class="field"><label for="categoryName">Category name</label><input id="categoryName" required></div><div class="field"><label for="categoryDescription">Description</label><input id="categoryDescription"></div></div><button type="submit">Save Category</button></form></div></section>
-    <section id="inventory" class="tabcontent hidden"><div class="panel"><h2>Inventory & Stock Updates</h2><p>Change the quantity and click Update. The backend must support the update endpoint shown in the code.</p><div class="scroll"><table><thead><tr><th>ID</th><th>Product</th><th>Quantity</th><th>Minimum</th><th>Status</th><th>Update Quantity</th></tr></thead><tbody id="inventoryBody"></tbody></table></div></div></section>
-    <section id="alerts" class="tabcontent hidden"><div class="panel"><h2>⚠️ Low Stock Alerts</h2><p>Products with quantity below 10 are listed here.</p><div class="scroll"><table><thead><tr><th>Product</th><th>Quantity</th><th>Status</th></tr></thead><tbody id="alertsBody"></tbody></table></div></div></section>
-    <input type="file" id="existingProductImage" accept="image/png,image/jpeg,image/webp" class="hidden" aria-label="Choose image for existing product"><div id="imageStorageNote" class="hidden" role="status"></div></main><footer>AgroShop • Product, Category & Inventory Module</footer>
-<script>
-    // Use '' when the HTML is served by the same Spring Boot application.
-    // If opened from another origin, set this to 'http://localhost:8081' (or your server port).
-    const API_BASE = location.protocol === 'file:' ? 'http://localhost:8083' : ''; // Set to your backend port when opening as a local file
-    const API = {products:'/api/products',categories:'/api/categories',inventory:'/api/inventory'};
-    let products=[],categories=[],inventory=[];
-    const imageKey=id=>'agroshop-product-image-'+id;
-    let imageTargetId=null;
-    function savedImage(id){try{return localStorage.getItem(imageKey(id))||'';}catch(e){return '';}}
-    function imageFor(p){return savedImage(p.id)||(/^https?:\/\//.test(p.imageUrl||'')?p.imageUrl:'');}
-    function productImageCell(p){const url=imageFor(p);return url?`<img class="product-photo" src="${esc(url)}" alt="${esc(p.name)}" onerror="this.style.display='none'">`:'<div class="photo-placeholder" aria-label="No product image">🌱</div>';}
-    async function fileToImage(file){
-        if(!file)return null;
-        if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Choose a JPG, PNG or WEBP image.');
-        if(file.size>2*1024*1024)throw Error('Image must be under 2 MB.');
-        return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Unable to read image.'));reader.readAsDataURL(file);});
-    }
-    function storeImage(id,data){try{localStorage.setItem(imageKey(id),data);return true;}catch(e){notify('Browser image storage is full. Try a smaller photo.',true);return false;}}
 
-    const $=id=>document.getElementById(id);
-    const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-    function notify(text,error=false){const el=$('message');el.textContent=text;el.className='message'+(error?' error':'');}
-    async function request(path,options={}){const response=await fetch(API_BASE+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});if(!response.ok)throw Error(`${response.status} ${response.statusText} — ${path}`);if(response.status===204)return null;const body=await response.text();return body?JSON.parse(body):null;}
-    function rowsOrEmpty(items,cols,render){return items.length?items.map(render).join(''):`<tr><td colspan="${cols}">No records found.</td></tr>`;}
-    function categoryName(p){if(typeof p.category==='object'&&p.category)return p.category.name||'—';return p.categoryName||p.category||categories.find(c=>String(c.id)===String(p.categoryId))?.name||'—';}
-    function inventoryProduct(r){return r.product?.name||r.productName||products.find(p=>String(p.id)===String(r.productId))?.name||`Product ${r.productId??'—'}`;}
-    function quantity(r){return Number(r.quantity??r.stockQuantity??0);}
-    function status(q){return q<=0?'<span class="pill out">Out of stock</span>':q<10?'<span class="pill low">Low stock</span>':'<span class="pill">In stock</span>';}
-    function render(){
-        $('productCount').textContent=products.length;$('categoryCount').textContent=categories.length;$('inventoryCount').textContent=inventory.length;$('lowCount').textContent=inventory.filter(r=>quantity(r)<10).length;
-        const search=$('search').value.toLowerCase();const filtered=products.filter(p=>String(p.name||'').toLowerCase().includes(search));
-        $('productsBody').innerHTML=rowsOrEmpty(filtered,6,p=>`<tr><td>${productImageCell(p)}</td><td>${esc(p.id)}</td><td>${esc(p.name)}</td><td>${esc(categoryName(p))}</td><td>${esc(p.price)}</td><td><button class="secondary photo-action" data-upload-product="${esc(p.id)}">📷 Add / Change Photo</button> <button class="danger" data-delete-product="${esc(p.id)}">Delete</button></td></tr>`);
-        $('categoriesBody').innerHTML=rowsOrEmpty(categories,3,c=>`<tr><td>${esc(c.id)}</td><td>${esc(c.name)}</td><td>${esc(c.description)}</td></tr>`);
-        $('productCategory').innerHTML='<option value="">Select category</option>'+categories.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
-        $('inventoryBody').innerHTML=rowsOrEmpty(inventory,6,r=>`<tr><td>${esc(r.id)}</td><td>${esc(inventoryProduct(r))}</td><td>${quantity(r)}</td><td>${esc(r.minimumStock??10)}</td><td>${status(quantity(r))}</td><td><div class="actions"><input aria-label="New quantity" type="number" min="0" value="${quantity(r)}" id="qty-${esc(r.id)}"><button data-update-stock="${esc(r.id)}">Update</button></div></td></tr>`);
-        $('alertsBody').innerHTML=rowsOrEmpty(inventory.filter(r=>quantity(r)<10),3,r=>`<tr><td>${esc(inventoryProduct(r))}</td><td>${quantity(r)}</td><td>${status(quantity(r))}</td></tr>`);
+<header>
+    <h1>🌱 AgroShop Management</h1>
+    <p>Product, Category & Inventory Control Center</p>
+</header>
+
+<main>
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" role="status" aria-live="polite"></div>
+
+    <!-- Navigation -->
+    <nav class="tabs">
+        <button class="active" data-tab="products">Products</button>
+        <button data-tab="categories">Categories</button>
+        <button data-tab="inventory">Inventory</button>
+        <button data-tab="alerts">Low Stock Alerts</button>
+        <button id="refresh">↻ Refresh Data</button>
+    </nav>
+
+    <!-- Dashboard Statistics -->
+    <section class="panel">
+        <div class="grid">
+            <div class="stat"><small>Total Products</small><strong id="productCount">—</strong></div>
+            <div class="stat"><small>Categories</small><strong id="categoryCount">—</strong></div>
+            <div class="stat"><small>Inventory Records</small><strong id="inventoryCount">—</strong></div>
+            <div class="stat"><small>Low Stock Alerts</small><strong id="lowCount">—</strong></div>
+        </div>
+    </section>
+
+    <!-- Products View -->
+    <section id="products" class="tabcontent">
+        <div class="panel">
+            <div class="toolbar">
+                <h2>Product Directory</h2>
+                <input id="search" type="search" placeholder="Search products by name..." style="max-width:300px">
+            </div>
+            <div class="scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price (Rs.)</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Add New Product</h2>
+            <form id="productForm">
+                <div class="formgrid">
+                    <div class="field">
+                        <label for="productName">Product Name <span style="color:var(--danger)">*</span></label>
+                        <input id="productName" required>
+                    </div>
+                    <div class="field">
+                        <label for="productPrice">Price (Rs.) <span style="color:var(--danger)">*</span></label>
+                        <input id="productPrice" type="number" min="0" step="0.01" required>
+                    </div>
+                    <div class="field">
+                        <label for="productCategory">Category <span style="color:var(--danger)">*</span></label>
+                        <select id="productCategory" required></select>
+                    </div>
+                    <div class="field">
+                        <label for="productUnit">Unit (optional)</label>
+                        <input id="productUnit" placeholder="e.g. 1 kg, 500g, 1 piece">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="productImage">Product Image (optional)</label>
+                    <input id="productImage" type="file" accept="image/png,image/jpeg,image/webp">
+                    <div class="hint">Upload a JPG, PNG, or WEBP image (Max: 2MB). Photos are cached in your browser.</div>
+                    <img id="productImagePreview" class="photo-preview hidden" alt="Preview">
+                </div>
+                <div class="field">
+                    <label for="productDescription">Description (optional)</label>
+                    <textarea id="productDescription" rows="3" placeholder="Enter product details..."></textarea>
+                </div>
+                <button type="submit">Save Product</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Categories View -->
+    <section id="categories" class="tabcontent hidden">
+        <div class="panel">
+            <h2>Categories</h2>
+            <div class="scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody id="categoriesBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Add New Category</h2>
+            <form id="categoryForm">
+                <div class="formgrid">
+                    <div class="field">
+                        <label for="categoryName">Category Name <span style="color:var(--danger)">*</span></label>
+                        <input id="categoryName" required>
+                    </div>
+                    <div class="field">
+                        <label for="categoryDescription">Description</label>
+                        <input id="categoryDescription" placeholder="Optional category description">
+                    </div>
+                </div>
+                <button type="submit">Save Category</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Inventory View -->
+    <section id="inventory" class="tabcontent hidden">
+        <div class="panel">
+            <h2>Inventory & Stock Updates</h2>
+            <p style="color:var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Manage your current stock levels. Adjust the quantity input and click "Update" to save to the database.
+            </p>
+            <div class="scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product</th>
+                        <th>Available Qty</th>
+                        <th>Min. Threshold</th>
+                        <th>Status</th>
+                        <th>Adjust Stock</th>
+                    </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Low Stock Alerts View -->
+    <section id="alerts" class="tabcontent hidden">
+        <div class="panel">
+            <h2>⚠️ Low Stock Alerts</h2>
+            <p style="color:var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Products requiring immediate restocking (Quantity < 10).
+            </p>
+            <div class="scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current Quantity</th>
+                        <th>Status Alert</th>
+                    </tr>
+                    </thead>
+                    <tbody id="alertsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hidden Inputs for logic -->
+    <input type="file" id="existingProductImage" accept="image/png,image/jpeg,image/webp" class="hidden" aria-label="Update image">
+</main>
+
+<footer>
+    &copy; 2026 AgroShop Management System. All rights reserved.
+</footer>
+
+<script>
+    /** --- Configuration --- **/
+        // Use '' when the HTML is served by the same Spring Boot application.
+        // If opened from another origin, set this to 'http://localhost:8083'
+    const API_BASE = location.protocol === 'file:' ? 'http://localhost:8083' : '';
+    const API = {
+        products: '/api/products',
+        categories: '/api/categories',
+        inventory: '/api/inventory'
+    };
+
+    /** --- State Management --- **/
+    let products = [];
+    let categories = [];
+    let inventory = [];
+    let imageTargetId = null;
+
+    /** --- Utilities --- **/
+    const \$ = id => document.getElementById(id);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+    // Toast Notification System
+    function showToast(message, type = 'success') {
+        const container = \$('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span>${esc(message)}</span>`;
+        container.appendChild(toast);
+
+        // Remove after 4 seconds
+        setTimeout(() => {
+            toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
-    async function load(){try{const results=await Promise.allSettled([request(API.products),request(API.categories),request(API.inventory)]);products=results[0].status==='fulfilled'?(results[0].value||[]):[];categories=results[1].status==='fulfilled'?(results[1].value||[]):[];inventory=results[2].status==='fulfilled'?(results[2].value||[]):[];render();const failed=results.map((r,i)=>r.status==='rejected'?Object.values(API)[i]:null).filter(Boolean);if(failed.length)notify('Could not load: '+failed.join(', ')+'. Check your Spring Boot API paths and port.',true);else $('message').classList.add('hidden');}catch(err){notify(err.message,true);}}
-    for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>{x.classList.toggle('active',x===b);x.classList.toggle('secondary',x!==b)});document.querySelectorAll('.tabcontent').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));});
-    $('search').addEventListener('input',render);$('refresh').addEventListener('click',load);
-    $('categoryForm').addEventListener('submit',async e=>{e.preventDefault();try{await request(API.categories,{method:'POST',body:JSON.stringify({name:$('categoryName').value,description:$('categoryDescription').value,status:true})});e.target.reset();await load();notify('Category added successfully.');}catch(err){notify('Category save failed: '+err.message,true);}});
-    $('productImage').addEventListener('change',async e=>{try{const data=await fileToImage(e.target.files[0]);$('productImagePreview').src=data||'';$('productImagePreview').classList.toggle('hidden',!data);}catch(err){e.target.value='';$('productImagePreview').classList.add('hidden');notify(err.message,true);}});
-    $('existingProductImage').addEventListener('change',async e=>{try{const data=await fileToImage(e.target.files[0]);if(data&&imageTargetId!==null&&storeImage(imageTargetId,data)){render();notify('Photo saved in this browser for product '+imageTargetId+'.');}}catch(err){notify(err.message,true);}finally{e.target.value='';imageTargetId=null;}});
-    $('productForm').addEventListener('submit',async e=>{e.preventDefault();const id=Number($('productCategory').value);const cat=categories.find(c=>Number(c.id)===id);const payload={name:$('productName').value,price:Number($('productPrice').value),categoryId:id,category:cat?.name,unit:$('productUnit').value,description:$('productDescription').value};try{const photo=await fileToImage($('productImage').files[0]);const result=await request(API.products,{method:'POST',body:JSON.stringify(payload)});let newId=result?.id;if(photo&&!newId){const refreshed=await request(API.products);const matching=(refreshed||[]).filter(p=>p.name===payload.name);newId=matching.length?matching[matching.length-1].id:null;}if(photo&&newId!=null)storeImage(newId,photo);e.target.reset();$('productImagePreview').classList.add('hidden');await load();notify(photo&&newId==null?'Product added, but image could not be linked: backend did not return a product ID.':'Product added successfully.');}catch(err){notify('Product save failed: '+err.message,true);}});
-    document.addEventListener('click',async e=>{const upload=e.target.closest('[data-upload-product]');if(upload){imageTargetId=upload.dataset.uploadProduct;$('existingProductImage').click();return;}const del=e.target.closest('[data-delete-product]');if(del){if(!confirm('Delete this product?'))return;try{await request(`${API.products}/${encodeURIComponent(del.dataset.deleteProduct)}`,{method:'DELETE'});try{localStorage.removeItem(imageKey(del.dataset.deleteProduct));}catch(e){}await load();notify('Product deleted.');}catch(err){notify('Delete failed: '+err.message,true);}return;}const update=e.target.closest('[data-update-stock]');if(update){const id=update.dataset.updateStock;const qty=Number($('qty-'+id).value);if(!Number.isInteger(qty)||qty<0){notify('Enter a valid non-negative quantity.',true);return;}const record=inventory.find(r=>String(r.id)===id);try{await request(`${API.inventory}/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify({...record,quantity:qty})});await load();notify('Inventory updated.');}catch(err){notify('Stock update failed: '+err.message+'; check your InventoryController update endpoint.',true);}}});
-    load();
+
+    /** --- Local Storage Image Handling --- **/
+    const imageKey = id => 'agroshop-product-image-' + id;
+
+    function savedImage(id) {
+        try { return localStorage.getItem(imageKey(id)) || ''; }
+        catch (e) { return ''; }
+    }
+
+    function imageFor(p) {
+        return savedImage(p.id) || (/^https?:\/\//.test(p.imageUrl || '') ? p.imageUrl : '');
+    }
+
+    function productImageCell(p) {
+        const url = imageFor(p);
+        return url
+            ? `<img class="product-photo" src="${esc(url)}" alt="${esc(p.name)}" onerror="this.style.display='none'">`
+            : '<div class="photo-placeholder" aria-label="No product image">🌱</div>';
+    }
+
+    async function fileToImage(file) {
+        if (!file) return null;
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw Error('Choose a JPG, PNG or WEBP image.');
+        if (file.size > 2 * 1024 * 1024) throw Error('Image must be under 2 MB.');
+
+        return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(Error('Unable to read image.'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function storeImage(id, data) {
+        try {
+            localStorage.setItem(imageKey(id), data);
+            return true;
+        } catch (e) {
+            showToast('Browser image storage is full. Try a smaller photo.', 'error');
+            return false;
+        }
+    }
+
+    /** --- API Communication --- **/
+    async function request(path, options = {}) {
+        const response = await fetch(API_BASE + path, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        });
+
+        if (!response.ok) throw Error(`${response.status} ${response.statusText} — Failed to reach ${path}`);
+        if (response.status === 204) return null;
+
+        const body = await response.text();
+        return body ? JSON.parse(body) : null;
+    }
+
+    /** --- Data Rendering --- **/
+    function rowsOrEmpty(items, cols, renderFn) {
+        return items.length
+            ? items.map(renderFn).join('')
+            : `<tr><td colspan="${cols}" style="text-align:center; color:var(--text-muted); padding:2rem;">No records found.</td></tr>`;
+    }
+
+    function categoryName(p) {
+        if (typeof p.category === 'object' && p.category) return p.category.name || '—';
+        return p.categoryName || p.category || categories.find(c => String(c.id) === String(p.categoryId))?.name || '—';
+    }
+
+    function inventoryProduct(r) {
+        return r.product?.name || r.productName || products.find(p => String(p.id) === String(r.productId))?.name || `Product ${r.productId ?? '—'}`;
+    }
+
+    function quantity(r) { return Number(r.quantity ?? r.stockQuantity ?? 0); }
+
+    function getStatusBadge(q) {
+        if (q <= 0) return '<span class="pill out">Out of stock</span>';
+        if (q < 10) return '<span class="pill low">Low stock</span>';
+        return '<span class="pill">In stock</span>';
+    }
+
+    function renderUI() {
+        // Update Stats
+    \$('productCount').textContent = products.length;
+        \$('categoryCount').textContent = categories.length;
+        \$('inventoryCount').textContent = inventory.length;
+        \$('lowCount').textContent = inventory.filter(r => quantity(r) < 10).length;
+
+        // Products Table
+        const search = \$('search').value.toLowerCase();
+        const filteredProducts = products.filter(p => String(p.name || '').toLowerCase().includes(search));
+
+        \$('productsBody').innerHTML = rowsOrEmpty(filteredProducts, 6, p => `
+            <tr>
+                <td>${productImageCell(p)}</td>
+                <td>${esc(p.id)}</td>
+                <td style="font-weight:500;">${esc(p.name)}</td>
+                <td>${esc(categoryName(p))}</td>
+                <td>${esc(p.price)}</td>
+                <td>
+                    <div class="actions">
+                        <button class="secondary photo-action" data-upload-product="${esc(p.id)}">📷 Photo</button>
+                        <button class="danger photo-action" data-delete-product="${esc(p.id)}">Delete</button>
+                    </div>
+                </td>
+            </tr>
+        `);
+
+        // Categories Table
+    \$('categoriesBody').innerHTML = rowsOrEmpty(categories, 3, c => `
+            <tr>
+                <td>${esc(c.id)}</td>
+                <td style="font-weight:500;">${esc(c.name)}</td>
+                <td>${esc(c.description)}</td>
+            </tr>
+        `);
+
+        // Category Select Dropdown
+    \$('productCategory').innerHTML = '<option value="">Select category...</option>' +
+            categories.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+
+        // Inventory Table
+    \$('inventoryBody').innerHTML = rowsOrEmpty(inventory, 6, r => `
+            <tr>
+                <td>${esc(r.id)}</td>
+                <td style="font-weight:500;">${esc(inventoryProduct(r))}</td>
+                <td>${quantity(r)}</td>
+                <td>${esc(r.minimumStock ?? 10)}</td>
+                <td>${getStatusBadge(quantity(r))}</td>
+                <td>
+                    <div class="actions">
+                        <input aria-label="New quantity" type="number" min="0" value="${quantity(r)}" id="qty-${esc(r.id)}">
+                        <button class="secondary photo-action" data-update-stock="${esc(r.id)}">Update</button>
+                    </div>
+                </td>
+            </tr>
+        `);
+
+        // Alerts Table
+        const lowStock = inventory.filter(r => quantity(r) < 10);
+        \$('alertsBody').innerHTML = rowsOrEmpty(lowStock, 3, r => `
+            <tr>
+                <td style="font-weight:500;">${esc(inventoryProduct(r))}</td>
+                <td>${quantity(r)}</td>
+                <td>${getStatusBadge(quantity(r))}</td>
+            </tr>
+        `);
+    }
+
+    /** --- Core Initialization --- **/
+    async function loadData() {
+        try {
+            const results = await Promise.allSettled([
+                request(API.products),
+                request(API.categories),
+                request(API.inventory)
+            ]);
+
+            products = results[0].status === 'fulfilled' ? (results[0].value || []) : [];
+            categories = results[1].status === 'fulfilled' ? (results[1].value || []) : [];
+            inventory = results[2].status === 'fulfilled' ? (results[2].value || []) : [];
+
+            renderUI();
+
+            // Check for API errors
+            const failed = results
+                .map((r, i) => r.status === 'rejected' ? Object.keys(API)[i] : null)
+                .filter(Boolean);
+
+            if (failed.length) {
+                showToast(`Failed to load: ${failed.join(', ')}. Check Spring Boot server.`, 'error');
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    /** --- Event Listeners --- **/
+
+    // Tab Switching
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('.tabcontent').forEach(content => {
+                content.classList.toggle('hidden', content.id !== btn.dataset.tab);
+            });
+        });
+    });
+
+    $('search').addEventListener('input', renderUI);$('refresh').addEventListener('click', () => {
+        showToast('Refreshing data...', 'success');
+        loadData();
+    });
+
+    // Handle Category Submission
+    \$('categoryForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        try {
+            await request(API.categories, {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: \$('categoryName').value,
+                description: \$('categoryDescription').value,
+                status: true
+        })
+        });
+            e.target.reset();
+            await loadData();
+            showToast('Category created successfully.');
+        } catch (err) {
+            showToast(`Save failed: ${err.message}`, 'error');
+        }
+    });
+
+    // Handle Image Preview for New Product
+    \$('productImage').addEventListener('change', async e => {
+        try {
+            const data = await fileToImage(e.target.files[0]);
+            const preview = \$('productImagePreview');
+            preview.src = data || '';
+            preview.classList.toggle('hidden', !data);
+        } catch (err) {
+            e.target.value = '';
+            \$('productImagePreview').classList.add('hidden');
+            showToast(err.message, 'error');
+        }
+    });
+
+    // Handle Inline Image Update for Existing Product
+    \$('existingProductImage').addEventListener('change', async e => {
+        try {
+            const data = await fileToImage(e.target.files[0]);
+            if (data && imageTargetId !== null && storeImage(imageTargetId, data)) {
+                renderUI();
+                showToast('Product photo updated successfully.');
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            e.target.value = '';
+            imageTargetId = null;
+        }
+    });
+
+    // Handle Product Submission
+    \$('productForm').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const catId = Number(\$('productCategory').value);
+        const catObj = categories.find(c => Number(c.id) === catId);
+
+        const payload = {
+            name: \$('productName').value,
+            price: Number(\$('productPrice').value),
+        categoryId: catId,
+            category: catObj?.name,
+            unit: \$('productUnit').value,
+            description: \$('productDescription').value
+    };
+
+        try {
+            const photo = await fileToImage(\$('productImage').files[0]);
+            const result = await request(API.products, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            let newId = result?.id;
+
+            // Fallback: If backend doesn't return ID, try to fetch it by name
+            if (photo && !newId) {
+                const refreshed = await request(API.products);
+                const matching = (refreshed || []).filter(p => p.name === payload.name);
+                newId = matching.length ? matching[matching.length - 1].id : null;
+            }
+
+            if (photo && newId != null) storeImage(newId, photo);
+
+            e.target.reset();
+            \$('productImagePreview').classList.add('hidden');
+            await loadData();
+
+            if (photo && newId == null) {
+                showToast('Product saved, but image linking failed (no ID returned).', 'error');
+            } else {
+                showToast('Product created successfully.');
+            }
+        } catch (err) {
+            showToast(`Product save failed: ${err.message}`, 'error');
+        }
+    });
+
+    // Event Delegation for Table Buttons
+    document.addEventListener('click', async e => {
+        // Handle Photo Upload Click
+        const uploadBtn = e.target.closest('[data-upload-product]');
+        if (uploadBtn) {
+            imageTargetId = uploadBtn.dataset.uploadProduct;
+            \$('existingProductImage').click();
+            return;
+        }
+
+        // Handle Delete Product Click
+        const deleteBtn = e.target.closest('[data-delete-product]');
+        if (deleteBtn) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            try {
+                const id = deleteBtn.dataset.deleteProduct;
+                await request(`${API.products}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                try { localStorage.removeItem(imageKey(id)); } catch (e) {}
+                await loadData();
+                showToast('Product deleted successfully.');
+            } catch (err) {
+                showToast(`Delete failed: ${err.message}`, 'error');
+            }
+            return;
+        }
+
+        // Handle Update Stock Click
+        const updateBtn = e.target.closest('[data-update-stock]');
+        if (updateBtn) {
+            const id = updateBtn.dataset.updateStock;
+            const qty = Number(\$(`qty-${id}`).value);
+
+            if (!Number.isInteger(qty) || qty < 0) {
+                showToast('Please enter a valid non-negative quantity.', 'error');
+                return;
+            }
+
+            const record = inventory.find(r => String(r.id) === id);
+            try {
+                await request(`${API.inventory}/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ ...record, quantity: qty })
+                });
+                await loadData();
+                showToast('Inventory stock updated.');
+            } catch (err) {
+                showToast(`Stock update failed: ${err.message}`, 'error');
+            }
+        }
+    });
+
+    // Initial Load
+    loadData();
 </script>
-</body></html>
+</body>
+</html>
