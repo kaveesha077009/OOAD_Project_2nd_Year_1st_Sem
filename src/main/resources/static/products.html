@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products and stock | AgroShop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div id="page-head"></div>
+
+  <section class="panel" id="form-panel">
+    <h2 id="form-title">Add a product</h2>
+    <div class="grid">
+      <div><label for="name">Product name</label><input id="name" maxlength="100" placeholder="Urea fertilizer"></div>
+      <div><label for="category">Category</label><select id="category"></select></div>
+      <div><label for="unit">Unit</label><input id="unit" maxlength="20" placeholder="kg, bag, piece"></div>
+      <div><label for="price">Price (Rs.)</label><input id="price" type="number" min="0" step="0.01"></div>
+      <div><label for="quantity">Opening stock</label><input id="quantity" type="number" min="0" step="0.01" value="0"></div>
+      <div><label for="minimum">Alert when stock falls to</label><input id="minimum" type="number" min="0" step="0.01" value="5"></div>
+      <div class="wide"><label for="desc">Description (optional)</label><textarea id="desc"></textarea></div>
+    </div>
+    <div class="actions">
+      <button id="save">Add product</button>
+      <button id="cancel" class="ghost" hidden>Cancel editing</button>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <h2 style="margin:0">Inventory</h2>
+    <input id="search" type="search" placeholder="Search by name or category" aria-label="Search products">
+  </div>
+  <div class="table-wrap panel" style="padding:0">
+    <table>
+      <thead><tr>
+        <th>Product</th><th>Category</th><th class="num">Price</th><th class="num">In stock</th><th>Adjust stock</th><th></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="js/app.js"></script>
+<script>
+  let isAdmin = false;
+
+  let products = [];
+  let editingId = null;
+  const $ = (id) => document.getElementById(id);
+
+  async function loadCategories() {
+    const cats = await api('GET', '/api/categories');
+    const sel = $('category');
+    sel.replaceChildren(h('option', { value: '' }, cats.length ? 'Choose a category' : 'Add a category first'),
+      cats.map(c => h('option', { value: c.id }, c.name)));
+  }
+
+  async function loadProducts() {
+    products = await api('GET', '/api/products');
+    renderRows();
+  }
+
+  function renderRows() {
+    const q = $('search').value.trim().toLowerCase();
+    const list = products.filter(p => (p.name + ' ' + p.categoryName).toLowerCase().includes(q));
+    const body = $('rows');
+    if (!list.length) {
+      body.replaceChildren(h('tr', {}, h('td', { colspan: 6, class: 'empty' },
+        products.length ? 'No product matches your search.' : 'No products yet. Add your first product above.')));
+      return;
+    }
+    body.replaceChildren(...list.map(p => h('tr', { class: p.lowStock ? 'low' : '' },
+      h('td', {}, h('strong', {}, p.name), p.description ? h('div', { class: 'sub', style: 'margin:0;font-size:.85rem' }, p.description) : null),
+      h('td', {}, p.categoryName),
+      h('td', { class: 'num' }, money(p.price) + ' / ' + p.unit),
+      h('td', { class: 'num' }, num(p.quantity) + ' ' + p.unit, p.lowStock ? h('span', { class: 'badge' }, 'Low') : null),
+      h('td', {}, h('div', { class: 'row-actions' },
+        h('button', { class: 'small', title: 'Remove 1', 'aria-label': 'Remove one ' + p.unit + ' of ' + p.name, onclick: () => adjust(p.id, -1) }, '-1'),
+        h('button', { class: 'small', title: 'Add 1', 'aria-label': 'Add one ' + p.unit + ' of ' + p.name, onclick: () => adjust(p.id, 1) }, '+1'),
+        h('button', { class: 'small ghost', onclick: () => adjust(p.id, null) }, 'Set amount'))),
+      h('td', {}, h('div', { class: 'row-actions' },
+        isAdmin ? h('button', { class: 'small ghost', onclick: () => startEdit(p) }, 'Edit') : null,
+        isAdmin ? h('button', { class: 'small danger', onclick: () => remove(p) }, 'Remove') : null))
+    )));
+  }
+
+  async function adjust(id, change) {
+    if (change === null) {
+      const v = prompt('Enter the change in stock. Use a minus sign to take stock out, e.g. -3 or 25');
+      if (v === null || v.trim() === '' || isNaN(Number(v))) return;
+      change = Number(v);
+    }
+    await run(async () => {
+      await api('PUT', '/api/products/' + id + '/stock?quantityChange=' + encodeURIComponent(change));
+      await loadProducts();
+    });
+  }
+
+  function payload() {
+    return {
+      name: $('name').value,
+      description: $('desc').value || null,
+      price: $('price').value === '' ? null : Number($('price').value),
+      unit: $('unit').value,
+      categoryId: $('category').value === '' ? null : Number($('category').value),
+      quantity: $('quantity').value === '' ? null : Number($('quantity').value),
+      minimumStock: $('minimum').value === '' ? null : Number($('minimum').value),
+    };
+  }
+
+  function resetForm() {
+    editingId = null;
+    for (const id of ['name', 'unit', 'price', 'desc']) $(id).value = '';
+    $('category').value = '';
+    $('quantity').value = 0; $('minimum').value = 5;
+    $('quantity').disabled = false;
+    $('form-title').textContent = 'Add a product';
+    $('save').textContent = 'Add product';
+    $('cancel').hidden = true;
+  }
+
+  function startEdit(p) {
+    editingId = p.id;
+    $('name').value = p.name; $('unit').value = p.unit; $('price').value = p.price;
+    $('desc').value = p.description || ''; $('category').value = p.categoryId;
+    $('minimum').value = p.minimumStock;
+    $('quantity').value = p.quantity; $('quantity').disabled = true; // change stock with the buttons so it stays traceable
+    $('form-title').textContent = 'Edit ' + p.name;
+    $('save').textContent = 'Save changes';
+    $('cancel').hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('name').focus();
+  }
+
+  $('save').addEventListener('click', () => run(async () => {
+    const wasEditing = editingId !== null;
+    if (wasEditing) await api('PUT', '/api/products/' + editingId, payload());
+    else await api('POST', '/api/products', payload());
+    toast(wasEditing ? 'Product updated' : 'Product added');
+    resetForm();
+    await loadProducts();
+  }));
+  $('cancel').addEventListener('click', resetForm);
+  $('search').addEventListener('input', renderRows);
+
+  async function remove(p) {
+    if (!confirm('Remove ' + p.name + ' from the shop list? Past orders keep their records.')) return;
+    await run(async () => {
+      await api('DELETE', '/api/products/' + p.id);
+      toast('Product removed');
+      await loadProducts();
+    });
+  }
+
+  renderLayout('products.html', 'Products and stock', 'Add products, keep stock counts right, and spot items that are running out.').then(me => {
+    if (!me) return;
+    isAdmin = me.role === 'ADMIN';
+    $('form-panel').hidden = !isAdmin;
+    run(async () => { if (isAdmin) await loadCategories(); await loadProducts(); });
+  });
+</script>
+</body>
+</html>

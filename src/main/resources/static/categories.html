@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Categories | AgroShop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div id="page-head"></div>
+
+  <section class="panel">
+    <h2 id="form-title">Add a category</h2>
+    <div class="grid">
+      <div><label for="name">Category name</label><input id="name" maxlength="100" placeholder="Fertilizer"></div>
+      <div><label for="desc">Description (optional)</label><input id="desc" maxlength="255"></div>
+    </div>
+    <div class="actions">
+      <button id="save">Add category</button>
+      <button id="cancel" class="ghost" hidden>Cancel editing</button>
+    </div>
+  </section>
+
+  <div class="table-wrap panel" style="padding:0">
+    <table>
+      <thead><tr><th>Name</th><th>Description</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="js/app.js"></script>
+<script>
+  const ready = renderLayout('categories.html', 'Categories', 'Group products so staff and customers can find them quickly.');
+
+  const $ = (id) => document.getElementById(id);
+  let editingId = null;
+
+  async function load() {
+    const cats = await api('GET', '/api/categories');
+    $('rows').replaceChildren(...(cats.length ? cats.map(c => h('tr', {},
+      h('td', {}, h('strong', {}, c.name)),
+      h('td', {}, c.description || ''),
+      h('td', {}, h('div', { class: 'row-actions' },
+        h('button', { class: 'small ghost', onclick: () => startEdit(c) }, 'Edit'),
+        h('button', { class: 'small danger', onclick: () => remove(c) }, 'Remove')))
+    )) : [h('tr', {}, h('td', { colspan: 3, class: 'empty' }, 'No categories yet. Add one above.'))]));
+  }
+
+  function reset() {
+    editingId = null; $('name').value = ''; $('desc').value = '';
+    $('form-title').textContent = 'Add a category'; $('save').textContent = 'Add category'; $('cancel').hidden = true;
+  }
+
+  function startEdit(c) {
+    editingId = c.id; $('name').value = c.name; $('desc').value = c.description || '';
+    $('form-title').textContent = 'Edit ' + c.name; $('save').textContent = 'Save changes'; $('cancel').hidden = false;
+    $('name').focus();
+  }
+
+  $('save').addEventListener('click', () => run(async () => {
+    const body = { name: $('name').value, description: $('desc').value || null };
+    const wasEditing = editingId !== null;
+    if (wasEditing) await api('PUT', '/api/categories/' + editingId, body);
+    else await api('POST', '/api/categories', body);
+    toast(wasEditing ? 'Category updated' : 'Category added');
+    reset(); await load();
+  }));
+  $('cancel').addEventListener('click', reset);
+
+  async function remove(c) {
+    if (!confirm('Remove the category ' + c.name + '?')) return;
+    await run(async () => { await api('DELETE', '/api/categories/' + c.id); toast('Category removed'); await load(); });
+  }
+
+  ready.then(me => { if (me) run(load); });
+</script>
+</body>
+</html>

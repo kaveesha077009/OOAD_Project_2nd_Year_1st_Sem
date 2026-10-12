@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop | AgroShop</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main>
+  <div id="page-head"></div>
+  <div class="shop">
+    <section>
+      <div class="filters">
+        <input id="search" type="search" placeholder="Search products" aria-label="Search products">
+        <select id="cat" aria-label="Filter by category"><option value="">All categories</option></select>
+      </div>
+      <div id="cards" class="cards"></div>
+    </section>
+
+    <aside class="panel cart" aria-label="Your cart">
+      <h2>Your cart</h2>
+      <div id="lines"></div>
+      <div class="total"><span>Total</span><span id="total">Rs. 0.00</span></div>
+      <label for="pay">Payment method</label>
+      <select id="pay">
+        <option value="CASH_ON_DELIVERY">Cash on delivery</option>
+        <option value="BANK_TRANSFER">Bank transfer</option>
+      </select>
+      <div id="bank" class="note" hidden>Transfer the total to the shop account and keep your slip. Your order is processed once staff confirm the payment.</div>
+      <div class="actions"><button id="order" style="width:100%">Place order</button></div>
+    </aside>
+  </div>
+</main>
+
+<script src="js/app.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let me = null, products = [], cart = [];
+
+  try { cart = JSON.parse(localStorage.getItem('agroshop-cart') || '[]'); } catch (e) { cart = []; }
+  const saveCart = () => { try { localStorage.setItem('agroshop-cart', JSON.stringify(cart)); } catch (e) {} renderCart(); };
+
+  function renderCards() {
+    const q = $('search').value.trim().toLowerCase(), c = $('cat').value;
+    const list = products.filter(p => (!c || String(p.categoryId) === c) && (p.name + ' ' + p.categoryName).toLowerCase().includes(q));
+    $('cards').replaceChildren(...(list.length ? list.map(p => {
+      const out = Number(p.quantity) <= 0;
+      const qty = h('input', { type: 'number', min: '1', step: '1', value: '1', 'aria-label': 'Quantity of ' + p.name, disabled: out });
+      return h('div', { class: 'card' + (out ? ' out' : '') },
+        h('span', { class: 'cat' }, p.categoryName),
+        h('strong', {}, p.name),
+        p.description ? h('span', { class: 'items' }, p.description) : null,
+        h('span', { class: 'price' }, money(p.price) + ' / ' + p.unit),
+        out ? h('span', { class: 'pill bad' }, 'Out of stock')
+            : p.lowStock ? h('span', { class: 'pill warn' }, 'Only ' + num(p.quantity) + ' left') : null,
+        h('div', { class: 'buy' }, qty, h('button', { disabled: out, onclick: () => add(p, Number(qty.value)) }, 'Add to cart')));
+    }) : [h('p', { class: 'empty' }, 'No products match your search.')]));
+  }
+
+  function add(p, qty) {
+    if (!(qty > 0)) return toast('Enter a quantity above zero', true);
+    const line = cart.find(l => l.id === p.id);
+    if (line) line.qty += qty; else cart.push({ id: p.id, name: p.name, price: p.price, unit: p.unit, qty });
+    saveCart(); toast(p.name + ' added to cart');
+  }
+
+  function renderCart() {
+    $('lines').replaceChildren(...(cart.length ? cart.map(l => {
+      const q = h('input', { type: 'number', min: '1', step: '1', value: l.qty, 'aria-label': 'Quantity of ' + l.name,
+        onchange: (e) => { l.qty = Number(e.target.value) > 0 ? Number(e.target.value) : 1; saveCart(); } });
+      return h('div', { class: 'line' },
+        h('strong', {}, l.name), h('span', {}, money(l.price * l.qty)),
+        h('div', { class: 'row-actions' }, q, h('span', { class: 'items' }, l.unit)),
+        h('button', { class: 'small danger', onclick: () => { cart = cart.filter(x => x !== l); saveCart(); } }, 'Remove'));
+    }) : [h('p', { class: 'empty', style: 'padding:12px' }, 'Your cart is empty. Add something from the list.')]));
+    $('total').textContent = money(cart.reduce((s, l) => s + l.price * l.qty, 0));
+    $('order').textContent = me && me.role === 'CUSTOMER' ? 'Place order' : me ? 'Staff use New sale' : 'Sign in to order';
+    $('order').disabled = !!me && me.role !== 'CUSTOMER';
+  }
+
+  $('pay').addEventListener('change', () => { $('bank').hidden = $('pay').value !== 'BANK_TRANSFER'; });
+  $('search').addEventListener('input', renderCards);
+  $('cat').addEventListener('change', renderCards);
+
+  $('order').addEventListener('click', () => run(async () => {
+    if (!me) { location.href = 'login.html'; return; }
+    if (!cart.length) return toast('Your cart is empty', true);
+    const o = await api('POST', '/api/orders', { paymentMethod: $('pay').value, items: cart.map(l => ({ productId: l.id, quantity: l.qty })) });
+    cart = []; saveCart();
+    toast('Order #' + o.id + ' placed. Total ' + money(o.total));
+    await load();
+  }));
+
+  async function load() {
+    products = await api('GET', '/api/products');
+    renderCards();
+  }
+
+  renderLayout('shop.html', 'Shop', 'Farm and hardware supplies. Add what you need and check out.', { public: true })
+    .then(async (u) => {
+      me = u;
+      const cats = await api('GET', '/api/categories');
+      $('cat').append(...cats.map(c => h('option', { value: c.id }, c.name)));
+      renderCart();
+      await load();
+    });
+</script>
+</body>
+</html>
