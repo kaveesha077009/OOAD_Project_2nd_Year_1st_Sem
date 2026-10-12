@@ -356,6 +356,18 @@
 </head>
 <body>
 
+<!-- Toast Notification Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 11000;">
+    <div id="agroToast" class="toast align-items-center text-white border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-6 fw-semibold" id="toastMessage">
+                Notification message will appear here.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
     <div class="container-fluid px-lg-5">
@@ -782,8 +794,15 @@
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-bold">Designation</label>
-                            <input type="text" id="empDesignation" class="form-control" placeholder="e.g. Manager" required>
+                            <label class="form-label text-secondary small fw-bold">Position / Designation</label>
+                            <select id="empDesignation" class="form-select fw-semibold" required>
+                                <option value="" disabled selected>Select Position</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Cashier">Cashier</option>
+                                <option value="Inventory Officer">Inventory Officer</option>
+                                <option value="Delivery Staff">Delivery Staff</option>
+                                <option value="Sales Assistant">Sales Assistant</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-secondary small fw-bold">Salary (Rs.)</label>
@@ -1031,6 +1050,28 @@
 
     const FALLBACK_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180" viewBox="0 0 300 180" fill="%23f1f5f9"><rect width="300" height="180"/><text x="50%" y="50%" fill="%2394a3b8" font-family="sans-serif" font-size="14" text-anchor="middle" dy=".3em">🌱 Agro Product</text></svg>`;
 
+    // Modern Professional English Toast System
+    function showNotification(message, type = 'success') {
+        const toastElem = document.getElementById('agroToast');
+        const toastMsg = document.getElementById('toastMessage');
+
+        toastElem.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+
+        if (type === 'success') {
+            toastElem.classList.add('bg-success');
+        } else if (type === 'error' || type === 'danger') {
+            toastElem.classList.add('bg-danger');
+        } else if (type === 'warning') {
+            toastElem.classList.add('bg-warning', 'text-dark');
+        } else {
+            toastElem.classList.add('bg-info');
+        }
+
+        toastMsg.innerText = message;
+        const toast = new bootstrap.Toast(toastElem, { delay: 4000 });
+        toast.show();
+    }
+
     function isAdmin() { return localStorage.getItem('userRole') === 'ADMIN'; }
     function isStaff() { return isAdmin() || localStorage.getItem('userRole') === 'EMPLOYEE'; }
 
@@ -1053,13 +1094,11 @@
     };
 
     payhere.onDismissed = function onDismissed() {
-        console.log("PayHere Payment Dismissed");
-        alert("Payment was cancelled!");
+        showNotification("Payment process was cancelled.", "warning");
     };
 
     payhere.onError = function onError(error) {
-        console.log("PayHere Error:" + error);
-        alert("PayHere Error: " + error);
+        showNotification("Payment error occurred: " + error, "error");
     };
 
     // --- DYNAMIC CATEGORIES FOR UI PILLS ---
@@ -1139,17 +1178,16 @@
             });
 
             if (response.ok) {
-                alert('🎉 Category added successfully!');
+                showNotification('New category added successfully!', 'success');
                 document.getElementById('addCategoryForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
                 await loadCategoriesUI();
                 await loadProducts();
             } else {
-                alert('⚠️ Failed to add category');
+                showNotification('Failed to add category.', 'error');
             }
         } catch (err) {
-            console.error('Error adding category:', err);
-            alert('⚠️ Connection error!');
+            showNotification('Server connection error!', 'error');
         }
     });
 
@@ -1180,67 +1218,61 @@
             });
 
             if (response.ok) {
-                alert('🎉 Product added successfully!');
+                showNotification('New product added successfully!', 'success');
                 document.getElementById('addProductForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
                 await loadProducts();
             } else {
-                const errText = await response.text();
-                alert('⚠️ Failed to add product: ' + errText);
+                showNotification('Failed to add product.', 'error');
             }
         } catch (err) {
-            console.error('Error adding product:', err);
-            alert('⚠️ Connection error!');
+            showNotification('Server connection error!', 'error');
         }
     });
 
     async function deleteProduct(id) {
         if (!isAdmin()) return;
-        if (!confirm("Are you sure you want to delete this product?")) return;
 
         try {
             const res = await fetch(`${BASE_URL}/api/products/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                alert("🎉 Product deleted successfully!");
+                showNotification("Product removed successfully!", "success");
                 await loadProducts();
             } else {
-                alert("⚠️ Failed to delete product");
+                showNotification("Failed to remove product.", "error");
             }
         } catch (e) {
-            console.error("Delete product request failed:", e);
+            showNotification("Server connection error!", "error");
         }
     }
 
     // --- DELETE FUNCTIONS ---
     async function deleteCustomer(id) {
-        if (!confirm("Are you sure you want to delete this customer account?")) return;
         try {
             const res = await fetch(`${BASE_URL}/api/customers/${id}`, { method: 'DELETE' });
-            if (res.ok) alert("Customer deleted successfully!");
+            if (res.ok) showNotification("Customer account removed successfully!", "success");
         } catch (e) {
-            console.error("Delete request failed:", e);
+            showNotification("Failed to remove customer account.", "error");
         }
         await loadCustomers();
     }
 
     async function deleteSupplier(id) {
-        if (!confirm("Are you sure you want to delete this supplier?")) return;
         try {
             const res = await fetch(`${BASE_URL}/api/suppliers/${id}`, { method: 'DELETE' });
-            if (res.ok) alert("Supplier deleted successfully!");
+            if (res.ok) showNotification("Supplier removed successfully!", "success");
         } catch (e) {
-            console.error("Delete request failed:", e);
+            showNotification("Failed to remove supplier.", "error");
         }
         await loadSuppliers();
     }
 
     async function deleteEmployee(id) {
-        if (!confirm("Are you sure you want to delete this employee account?")) return;
         try {
             const res = await fetch(`${BASE_URL}/api/employees/${id}`, { method: 'DELETE' });
-            if (res.ok) alert("Employee deleted successfully!");
+            if (res.ok) showNotification("Employee account removed successfully!", "success");
         } catch (e) {
-            console.error("Delete request failed:", e);
+            showNotification("Failed to remove employee account.", "error");
         }
         await loadEmployees();
     }
@@ -1270,7 +1302,7 @@
         tbody.innerHTML = '';
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-3">No registered customers found!</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-3">No customers found!</td></tr>`;
             return;
         }
 
@@ -1400,7 +1432,7 @@
     // --- ORDERS FETCH AND RENDER ---
     async function openOrdersModal() {
         if (!isStaff()) {
-            alert("Access Denied: Staff role required.");
+            showNotification("Access Denied: Staff permission required.", "error");
             return;
         }
         await loadOrders();
@@ -1425,7 +1457,7 @@
 
         tbody.innerHTML = '';
         if (!orders || orders.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">No orders placed yet!</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">No orders found!</td></tr>`;
             return;
         }
 
@@ -1495,7 +1527,6 @@
             const currentQty = Number(inv.quantity ?? 10);
             const minStock = Number(inv.minimumStock ?? 5);
 
-            // Compute automatic stock status based on minimum threshold
             const isLowOrOut = currentQty <= minStock;
             const isFullyOut = currentQty <= 0;
 
@@ -1538,7 +1569,6 @@
         const inv = inventory.find(i => i.productId === productId) || { minimumStock: 5 };
         const minStock = Number(inv.minimumStock ?? 5);
 
-        // Auto status calculation: Quantity > 0 -> inStock = true
         const autoInStockState = newQty > 0;
 
         const payload = {
@@ -1564,22 +1594,20 @@
             }
 
             if (response.ok) {
-                // Update product availability status automatically in backend
                 await fetch(`${BASE_URL}/api/products/${productId}/stock?inStock=${autoInStockState}`, {
                     method: 'PUT'
                 });
 
                 if (prod) prod.inStock = autoInStockState;
 
-                alert("✅ Stock updated successfully!");
+                showNotification("Stock quantity updated successfully!", "success");
                 await loadInventory();
                 await loadProducts();
                 renderStockTable();
-                applyFilters(); // Synchronize front catalog grid immediately
+                applyFilters();
             }
         } catch(e) {
-            console.error("Error updating inventory:", e);
-            alert("⚠️ Connection error!");
+            showNotification("Server connection error!", "error");
         }
     }
 
@@ -1650,7 +1678,7 @@
         if (existing) existing.quantity += 1;
         else cart.push({ id: prod.id, name: prod.name, price: prod.price, quantity: 1 });
         saveCart();
-        alert(`Added ${prod.name} to Cart!`);
+        showNotification(`${prod.name} added to cart successfully!`, "success");
     }
 
     function openCartModal() {
@@ -1707,13 +1735,13 @@
 
     function openPaymentModal() {
         if (!localStorage.getItem('username')) {
-            alert("Please Login first to Checkout!");
+            showNotification("Please sign in to proceed!", "warning");
             openLoginModal();
             return;
         }
 
         if (cart.length === 0) {
-            alert('Your cart is empty!');
+            showNotification('Your cart is empty!', "warning");
             return;
         }
 
@@ -1729,13 +1757,13 @@
         e.preventDefault();
         const currentUser = localStorage.getItem('username');
         if (!currentUser) {
-            alert("Please login first!");
+            showNotification("Please sign in first!", "warning");
             return;
         }
 
         const address = document.getElementById('deliveryAddress').value.trim();
         if (!address) {
-            alert("Please enter a valid delivery address!");
+            showNotification("Please enter a valid address!", "warning");
             return;
         }
         localStorage.setItem('userAddress', address);
@@ -1789,7 +1817,6 @@
                 const autoInStockState = updatedQty > 0;
 
                 try {
-                    // Update Inventory Quantity
                     await fetch(`${BASE_URL}/api/inventory/${inv.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -1800,7 +1827,6 @@
                         })
                     });
 
-                    // Sync Product Availability State
                     await fetch(`${BASE_URL}/api/products/${item.id}/stock?inStock=${autoInStockState}`, {
                         method: 'PUT'
                     });
@@ -1835,7 +1861,7 @@
 
             if (response.ok) {
                 await deductInventoryOnOrder();
-                alert('🎉 Order placed successfully!');
+                showNotification('Order placed successfully! Thank you.', 'success');
                 cart = [];
                 saveCart();
                 const payModalElem = document.getElementById('paymentModal');
@@ -1843,12 +1869,10 @@
                 if (modalInstance) modalInstance.hide();
                 document.getElementById('paymentForm').reset();
             } else {
-                const errText = await response.text();
-                alert('⚠️ Failed to place order: ' + errText);
+                showNotification('Failed to place the order.', 'error');
             }
         } catch (err) {
-            console.error("Error placing order:", err);
-            alert('⚠️ Server connection failed!');
+            showNotification('Server connection error!', 'error');
         }
     }
 
@@ -1860,6 +1884,7 @@
         updateCartBadge();
         updateAuthUI();
         applyFilters();
+        showNotification("You have successfully logged out.", "info");
     }
 
     function updateAuthUI() {
@@ -1928,7 +1953,7 @@
             const data = await response.json();
 
             if (response.ok && data.status === "success") {
-                alert(`Login successful! Welcome ${data.username}`);
+                showNotification(`Welcome, ${data.username}!`, 'success');
                 localStorage.setItem('userRole', data.role);
                 localStorage.setItem('username', data.username);
 
@@ -1938,11 +1963,10 @@
                 await loadCategoriesUI();
                 applyFilters();
             } else {
-                alert(data.message || 'Access Denied! Invalid credentials.');
+                showNotification('Login failed! Invalid username or password.', 'error');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            alert('Unable to connect to Spring Boot server.');
+            showNotification('Server connection error.', 'error');
         }
     });
 
@@ -1967,16 +1991,15 @@
             });
 
             if (response.ok) {
-                alert('🎉 Customer registered successfully! Please Login.');
+                showNotification('Registration successful! Please sign in.', 'success');
                 document.getElementById('signUpForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('signUpModal')).hide();
                 openLoginModal();
             } else {
-                alert('⚠️ Registration failed.');
+                showNotification('Registration failed.', 'error');
             }
         } catch (err) {
-            console.error('Registration error:', err);
-            alert('⚠️ Connection error!');
+            showNotification('Server connection error!', 'error');
         }
     });
 
@@ -1999,15 +2022,14 @@
             });
 
             if (response.ok) {
-                alert('🎉 Supplier added successfully!');
+                showNotification('Supplier added successfully!', 'success');
                 document.getElementById('addSupplierForm').reset();
                 await loadSuppliers();
             } else {
-                alert('⚠️ Failed to add supplier');
+                showNotification('Failed to add supplier.', 'error');
             }
         } catch (err) {
-            console.error('Error adding supplier:', err);
-            alert('⚠️ Connection error!');
+            showNotification('Server connection error!', 'error');
         }
     });
 
@@ -2035,17 +2057,15 @@
             });
 
             if (response.ok) {
-                alert('🎉 Employee created successfully!');
+                showNotification('New employee account created successfully!', 'success');
                 document.getElementById('addEmployeeForm').reset();
                 bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide();
                 await loadEmployees();
             } else {
-                const errorText = await response.text();
-                alert('⚠️ Failed: ' + errorText);
+                showNotification('Failed to create employee account.', 'error');
             }
         } catch (err) {
-            console.error('Error adding employee:', err);
-            alert('⚠️ Connection error!');
+            showNotification('Server connection error!', 'error');
         }
     });
 
@@ -2080,14 +2100,13 @@
             const data = await response.json();
 
             if (response.ok && data.status === "success") {
-                alert("📩 OTP code sent to your email!");
+                showNotification("OTP code sent to your email!", "success");
                 document.getElementById('verifyOtpForm').style.display = 'block';
             } else {
-                alert("⚠️ " + (data.message || "Failed to send OTP"));
+                showNotification("Failed to send OTP code.", "error");
             }
         } catch (err) {
-            console.error("Error sending OTP:", err);
-            alert("⚠️ Connection error!");
+            showNotification("Server connection error!", "error");
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerText = "📧 Send OTP to Email";
@@ -2111,15 +2130,14 @@
             const data = await response.json();
 
             if (response.ok && data.status === "success") {
-                alert("🎉 Password reset successfully! Please Login.");
+                showNotification("Password changed successfully! Please log in.", "success");
                 bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
                 openLoginModal();
             } else {
-                alert("⚠️ " + (data.message || "Invalid OTP code!"));
+                showNotification("Invalid OTP code!", "error");
             }
         } catch (err) {
-            console.error("Error resetting password:", err);
-            alert("⚠️ Connection error!");
+            showNotification("Server connection error!", "error");
         }
     });
 
@@ -2136,7 +2154,7 @@
             if (res.ok) {
                 const userOrders = await res.json();
                 if (userOrders.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">No orders placed yet!</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">You haven't placed any orders yet!</td></tr>`;
                 } else {
                     userOrders.forEach(o => {
                         tbody.innerHTML += `
@@ -2172,12 +2190,10 @@
             const rawImg = p.imageUrl || '';
             const imgUrl = rawImg ? rawImg : FALLBACK_SVG;
 
-            // Retrieve corresponding inventory item
             const inv = inventory.find(i => i.productId === p.id) || { quantity: 10, minimumStock: 5 };
             const currentQty = Number(inv.quantity ?? 10);
             const minStock = Number(inv.minimumStock ?? 5);
 
-            // Compute exact stock display status
             const isFullyOut = currentQty <= 0 || p.inStock === false;
             const isLowStock = !isFullyOut && currentQty <= minStock;
 
