@@ -1,6 +1,9 @@
 package com.agroshop.agroshopmangementsystem.service;
 
 import com.agroshop.agroshopmangementsystem.dto.PurchaseOrderRequest;
+import com.agroshop.agroshopmangementsystem.entity.Inventory;
+import com.agroshop.agroshopmangementsystem.repository.InventoryRepository;
+
 import com.agroshop.agroshopmangementsystem.entity.PurchaseItem;
 import com.agroshop.agroshopmangementsystem.entity.PurchaseOrder;
 import com.agroshop.agroshopmangementsystem.repository.ProductRepository;
@@ -25,17 +28,20 @@ public class PurchaseOrderService {
     private final PurchaseItemRepository itemRepository;
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
+    private final InventoryRepository inventoryRepository;
 
     public PurchaseOrderService(
             PurchaseOrderRepository orderRepository,
             PurchaseItemRepository itemRepository,
             SupplierRepository supplierRepository,
-            ProductRepository productRepository) {
+            ProductRepository productRepository,
+            InventoryRepository inventoryRepository) {
 
         this.orderRepository = orderRepository;
         this.itemRepository = itemRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     // Get all purchase orders
@@ -130,19 +136,88 @@ public class PurchaseOrderService {
         return savedOrder;
     }
 
-    // Mark an order as received
+
+    // Receive an order and replenish inventory
     @Transactional
     public PurchaseOrder receivePurchaseOrder(Long id) {
 
-        PurchaseOrder order = getPurchaseOrderById(id);
+        // Prevent simultaneous receiving of the same order
+        PurchaseOrder order = orderRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Purchase order not found"));
 
         if (!"PENDING".equals(order.getStatus())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Order is not pending");
+                    HttpStatus.CONFLICT, "Order has already been received");
+        }
+
+        List<PurchaseItem> items =
+                itemRepository.findByPurchaseOrderId(id);
+
+        if (items.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Purchase order has no items");
+        }
+
+        // Combine repeated products before updating stock
+        java.util.Map<Long, Integer> receivedQuantities =
+                new java.util.TreeMap<>();
+
+        for (PurchaseItem item : items) {
+            if (item.getProductId() == null
+                    || item.getQuantity() == null
+                    || item.getQuantity() <= 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Invalid purchase item");
+            }
+
+            try {
+                receivedQuantities.merge(
+                        item.getProductId(),
+                        item.getQuantity(),
+                        Math::addExact
+                );
+            } catch (ArithmeticException e) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Quantity is too large");
+            }
+        }
+
+        for (var entry : receivedQuantities.entrySet()) {
+            Long productId = entry.getKey();
+            int receivedQuantity = entry.getValue();
+
+            // Lock the product to coordinate inventory creation
+            productRepository.findByIdForUpdate(productId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Product not found"));
+
+            Inventory inventory = inventoryRepository
+                    .findByProductIdForUpdate(productId)
+                    .orElseGet(() -> {
+                        Inventory newInventory = new Inventory();
+                        newInventory.setProductId(productId);
+                        newInventory.setQuantity(0);
+                        newInventory.setMinimumStock(5);
+                        return newInventory;
+                    });
+
+            int currentQuantity =
+                    inventory.getQuantity() == null ? 0 : inventory.getQuantity();
+
+            try {
+                inventory.setQuantity(
+                        Math.addExact(currentQuantity, receivedQuantity)
+                );
+            } catch (ArithmeticException e) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Stock quantity is too large");
+            }
+
+            inventoryRepository.save(inventory);
         }
 
         order.setStatus("RECEIVED");
-
         return orderRepository.save(order);
     }
 }
