@@ -45,11 +45,14 @@ public class CustomerService {
         user.setRole("CUSTOMER");
         user.setStatus(1);
 
-        if (customer.getPassword() != null && !customer.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(customer.getPassword()));
-        } else {
-            user.setPassword(passwordEncoder.encode("default123"));
+        if (customer.getPassword() == null ||
+                customer.getPassword().length() < 8) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Password must contain at least 8 characters");
         }
+
+        user.setPassword(passwordEncoder.encode(customer.getPassword()));
 
         User savedUser = userRepository.save(user);
 

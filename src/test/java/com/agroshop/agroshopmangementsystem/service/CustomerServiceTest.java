@@ -104,4 +104,21 @@ class CustomerServiceTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         verify(customerRepository, never()).save(any());
     }
+
+    @Test
+    void shouldRejectRegistrationWithoutPassword() {
+        Customer customer = new Customer();
+        customer.setFirstName("Invalid");
+        customer.setUsername("agro_invalid_test");
+        customer.setEmail("invalid.test@example.com");
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.registerCustomer(customer)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        verify(customerRepository, never()).save(any());
+    }
+
 }
