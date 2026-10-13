@@ -1,7 +1,6 @@
-package com.Agro_Shop.agroshop.Entities;
+package com.agroshop.agroshopmangementsystem.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,19 +11,11 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false, unique = true)
     private Long orderId;
-
-    @Column(nullable = false)
-    private BigDecimal amount;
-
-    @Column(name = "payment_method", nullable = false)
     private String paymentMethod;
-
-    @Column(name = "payment_date", insertable = false, updatable = false)
+    private Double amount;
+    private String status;
     private LocalDateTime paymentDate;
-
-    private String status = "PENDING";
 
     public Payment() {}
 
@@ -34,14 +25,15 @@ public class Payment {
     public Long getOrderId() { return orderId; }
     public void setOrderId(Long orderId) { this.orderId = orderId; }
 
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
-
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 
-    public LocalDateTime getPaymentDate() { return paymentDate; }
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getPaymentDate() { return paymentDate; }
+    public void setPaymentDate(LocalDateTime paymentDate) { this.paymentDate = paymentDate; }
 }
