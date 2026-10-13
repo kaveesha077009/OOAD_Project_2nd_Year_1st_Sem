@@ -1,6 +1,7 @@
 package com.agroshop.agroshopmangementsystem.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "customer")
@@ -24,6 +25,7 @@ public class Customer {
     private String email;
 
     @Transient
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "phone_num")
