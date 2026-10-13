@@ -22,9 +22,13 @@ public class OrderController {
         try {
             Order savedOrder = orderService.placeOrderFromMap(payload);
             return ResponseEntity.ok(savedOrder);
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(java.util.Map.of("error", e.getReason()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(java.util.Map.of("error", "Order processing failed"));
         }
     }
 

@@ -42,27 +42,22 @@ public class OrderService {
         order.setStatus(status);
         order.setTotalAmount(totalAmount);
 
-        // Fetch or create a Customer record to ensure customer_id is never null
-        Customer customerToAttach = null;
-        List<Customer> customers = customerRepository.findAll();
 
-        if (!customers.isEmpty()) {
-            Optional<Customer> matchedCustomer = customers.stream()
-                    .filter(c -> (c.getEmail() != null && c.getEmail().equalsIgnoreCase(username)) ||
-                            (c.getFirstName() != null && c.getFirstName().equalsIgnoreCase(username)))
-                    .findFirst();
-
-            customerToAttach = matchedCustomer.orElse(customers.get(0));
-        } else {
-            // Create a default customer record if database table is completely empty
-            Customer defaultCustomer = new Customer();
-            defaultCustomer.setFirstName("Default");
-            defaultCustomer.setLastName("Customer");
-            defaultCustomer.setEmail("default@agroshop.com");
-            defaultCustomer.setPhoneNum("0000000000");
-            defaultCustomer.setAddress(deliveryAddress);
-            customerToAttach = customerRepository.saveAndFlush(defaultCustomer);
+        // Find the customer using their registered username
+        if (username.isBlank() || username.equals("Guest")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "A registered customer is required");
         }
+
+        Customer customerToAttach = customerRepository.findAll()
+                .stream()
+                .filter(c -> username.equals(c.getUsername()))
+                .findFirst()
+                .orElseThrow(() ->
+                        new org.springframework.web.server.ResponseStatusException(
+                                org.springframework.http.HttpStatus.NOT_FOUND,
+                                "Customer not found"));
 
         order.setCustomer(customerToAttach);
         return orderRepository.save(order);
