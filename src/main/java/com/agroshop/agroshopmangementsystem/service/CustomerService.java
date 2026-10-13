@@ -27,6 +27,11 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
+
+    public Customer getCustomerById(Long id) {
+        return customerRepository.findById(id).orElse(null);
+    }
+
     @Transactional
     public Customer registerCustomer(Customer customer) {
         String uname = (customer.getUsername() != null && !customer.getUsername().isEmpty())
@@ -52,6 +57,30 @@ public class CustomerService {
         customer.setUserId(savedUser.getId());
         customer.setUsername(uname);
         customer.setStatus(1);
+
+        return customerRepository.save(customer);
+    }
+
+
+    @Transactional
+    public Customer updateCustomer(Long id, Customer details) {
+        if (details == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Customer details are required");
+        }
+
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() ->
+                        new org.springframework.web.server.ResponseStatusException(
+                                org.springframework.http.HttpStatus.NOT_FOUND,
+                                "Customer not found"));
+
+        customer.setFirstName(details.getFirstName());
+        customer.setLastName(details.getLastName());
+        customer.setEmail(details.getEmail());
+        customer.setPhoneNum(details.getPhoneNum());
+        customer.setAddress(details.getAddress());
 
         return customerRepository.save(customer);
     }
