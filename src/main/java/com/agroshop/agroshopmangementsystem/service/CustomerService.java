@@ -38,6 +38,19 @@ public class CustomerService {
                 ? customer.getUsername()
                 : customer.getFirstName().toLowerCase();
 
+
+        if (userRepository.existsByUsername(uname)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT,
+                    "Username already registered");
+        }
+
+        if (userRepository.findByEmail(customer.getEmail()).isPresent()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT,
+                    "Email already registered");
+        }
+
         // 1. Create User
         User user = new User();
         user.setUsername(uname);
