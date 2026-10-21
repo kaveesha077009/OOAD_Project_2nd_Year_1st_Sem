@@ -26,13 +26,36 @@ public class EmployeeController {
     public ResponseEntity<?> addEmployee(@RequestBody EmployeeDTO dto) {
         try {
             Employee saved = employeeService.addEmployee(dto);
+<<<<<<< HEAD
             return ResponseEntity.ok(saved);
+=======
+            return ResponseEntity.status(201).body(
+                    java.util.Map.of(
+                            "message", "Employee created successfully",
+                            "id", saved.getId()
+                    )
+            );
+>>>>>>> origin/feature/supplier-purchasing-integration
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
+<<<<<<< HEAD
+=======
+
+    // Update an existing employee
+    @PutMapping("/{id}")
+    public ResponseEntity<EmployeeDTO> updateEmployee(
+            @PathVariable Long id,
+            @RequestBody EmployeeDTO dto) {
+
+        EmployeeDTO updated = employeeService.updateEmployee(id, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+>>>>>>> origin/feature/supplier-purchasing-integration
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);

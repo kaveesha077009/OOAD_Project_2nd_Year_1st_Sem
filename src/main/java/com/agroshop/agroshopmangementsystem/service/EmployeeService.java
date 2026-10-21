@@ -57,8 +57,34 @@ public class EmployeeService {
         return dtoList;
     }
 
+<<<<<<< HEAD
     @Transactional
     public Employee addEmployee(EmployeeDTO dto) {
+=======
+
+    // Validate information before creating an employee account
+    private void validateNewEmployee(EmployeeDTO dto) {
+        if (dto == null
+                || dto.getFirstName() == null || dto.getFirstName().isBlank()
+                || dto.getLastName() == null || dto.getLastName().isBlank()
+                || dto.getUsername() == null || dto.getUsername().isBlank()
+                || dto.getEmail() == null || !dto.getEmail().matches(
+                        "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+                || dto.getPassword() == null || dto.getPassword().isBlank()
+                || dto.getSalary() == null || !Double.isFinite(dto.getSalary())
+                || dto.getSalary() < 0) {
+            throw new IllegalArgumentException("Invalid employee information");
+        }
+
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email is already registered");
+        }
+    }
+
+    @Transactional
+    public Employee addEmployee(EmployeeDTO dto) {
+        validateNewEmployee(dto);
+>>>>>>> origin/feature/supplier-purchasing-integration
         if (dto.getUsername() != null && userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username '" + dto.getUsername() + "' is already registered!");
         }
@@ -88,6 +114,61 @@ public class EmployeeService {
         return employeeRepository.saveAndFlush(employee); // Force write to MySQL DB
     }
 
+<<<<<<< HEAD
+=======
+
+    // Update an existing employee's details
+    @Transactional
+    public EmployeeDTO updateEmployee(Long id, EmployeeDTO dto) {
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Employee not found"));
+
+        if (dto == null
+                || dto.getFirstName() == null || dto.getFirstName().isBlank()
+                || dto.getLastName() == null || dto.getLastName().isBlank()
+                || dto.getSalary() == null
+                || !Double.isFinite(dto.getSalary())
+                || dto.getSalary() < 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Invalid employee information");
+        }
+
+        employee.setFirstName(dto.getFirstName().trim());
+        employee.setLastName(dto.getLastName().trim());
+        employee.setDesignation(dto.getDesignation());
+        employee.setPosition(dto.getDesignation());
+        employee.setSalary(dto.getSalary());
+        employee.setPhoneNum(dto.getPhoneNum());
+        employee.setAddress(dto.getAddress());
+
+        employeeRepository.save(employee);
+
+        EmployeeDTO result = new EmployeeDTO();
+        result.setId(employee.getId());
+        result.setFirstName(employee.getFirstName());
+        result.setLastName(employee.getLastName());
+        result.setDesignation(employee.getDesignation());
+        result.setSalary(employee.getSalary());
+        result.setPhoneNum(employee.getPhoneNum());
+        result.setAddress(employee.getAddress());
+
+        if (employee.getUser() != null) {
+            result.setUsername(employee.getUser().getUsername());
+            result.setEmail(employee.getUser().getEmail());
+            result.setActive(Integer.valueOf(1).equals(
+                    employee.getUser().getStatus()));
+        } else {
+            result.setEmail(employee.getEmail());
+        }
+
+        return result;
+    }
+
+>>>>>>> origin/feature/supplier-purchasing-integration
     public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
     }

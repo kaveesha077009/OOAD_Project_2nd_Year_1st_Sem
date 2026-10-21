@@ -10,4 +10,8 @@ public class AgroShopMangementSystemApplication {
         SpringApplication.run(AgroShopMangementSystemApplication.class, args);
     }
 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/feature/supplier-purchasing-integration

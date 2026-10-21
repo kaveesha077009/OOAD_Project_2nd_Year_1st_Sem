@@ -1,6 +1,10 @@
 package com.agroshop.agroshopmangementsystem.entity;
 
 import jakarta.persistence.*;
+<<<<<<< HEAD
+=======
+import com.fasterxml.jackson.annotation.JsonIgnore;
+>>>>>>> origin/feature/supplier-purchasing-integration
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,11 +17,21 @@ public class User {
 
     private String username;
     private String email;
+<<<<<<< HEAD
+=======
+    @JsonIgnore
+>>>>>>> origin/feature/supplier-purchasing-integration
     private String password;
     private String role;
     private Integer status;
 
+<<<<<<< HEAD
     private String resetToken;
+=======
+    @JsonIgnore
+    private String resetToken;
+    @JsonIgnore
+>>>>>>> origin/feature/supplier-purchasing-integration
     private LocalDateTime tokenExpiry;
 
     public User() {}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AgroShop - Hardware and farm supplies shop
 
 Spring Boot 4 + MySQL + plain HTML. Covers Product and Inventory, login with roles, and Sales and Payment.
@@ -42,3 +43,6 @@ On first start the placeholder passwords in the SQL are converted to BCrypt (the
 | PUT | /api/products/{id}/stock?quantityChange=-3 ; GET /api/products/low-stock | admin, employee |
 | POST | /api/orders ; GET /api/orders/my | customer |
 | POST | /api/orders/sale ; GET /api/orders ; PUT /api/orders/{id}/status?status=SHIPPED ; PUT /api/orders/{id}/payment/confirm | admin, employee |
+=======
+# ooad
+>>>>>>> origin/feature/supplier-purchasing-integration
