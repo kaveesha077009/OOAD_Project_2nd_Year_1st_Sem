@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroShop - Agriculture & Farming Portal</title>
@@ -2291,6 +2292,8 @@
 </body>
 </html>
 =======
+=======
+>>>>>>> origin/feature/product-management
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
     <title>AgroShop | Product, Category & Inventory</title>
     <style>
@@ -2355,5 +2358,9 @@
     document.addEventListener('click',async e=>{const upload=e.target.closest('[data-upload-product]');if(upload){imageTargetId=upload.dataset.uploadProduct;$('existingProductImage').click();return;}const del=e.target.closest('[data-delete-product]');if(del){if(!confirm('Delete this product?'))return;try{await request(`${API.products}/${encodeURIComponent(del.dataset.deleteProduct)}`,{method:'DELETE'});try{localStorage.removeItem(imageKey(del.dataset.deleteProduct));}catch(e){}await load();notify('Product deleted.');}catch(err){notify('Delete failed: '+err.message,true);}return;}const update=e.target.closest('[data-update-stock]');if(update){const id=update.dataset.updateStock;const qty=Number($('qty-'+id).value);if(!Number.isInteger(qty)||qty<0){notify('Enter a valid non-negative quantity.',true);return;}const record=inventory.find(r=>String(r.id)===id);try{await request(`${API.inventory}/${encodeURIComponent(id)}`,{method:'PUT',body:JSON.stringify({...record,quantity:qty})});await load();notify('Inventory updated.');}catch(err){notify('Stock update failed: '+err.message+'; check your InventoryController update endpoint.',true);}}});
     load();
 </script>
+<<<<<<< HEAD
+</body></html>
+>>>>>>> origin/feature/product-management
+=======
 </body></html>
 >>>>>>> origin/feature/product-management
