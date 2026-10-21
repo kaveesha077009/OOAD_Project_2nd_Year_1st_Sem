@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class AgroShopMangementSystemApplication {
 
+<<<<<<< HEAD
     public static void main(String[] args) {
         SpringApplication.run(AgroShopMangementSystemApplication.class, args);
     }
@@ -15,3 +16,10 @@ public class AgroShopMangementSystemApplication {
 =======
 }
 >>>>>>> origin/feature/supplier-purchasing-integration
+=======
+	public static void main(String[] args) {
+		SpringApplication.run(AgroShopMangementSystemApplication.class, args);
+	}
+
+}
+>>>>>>> origin/feature-order-management
